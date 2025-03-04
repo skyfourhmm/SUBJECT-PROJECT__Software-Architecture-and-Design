@@ -1,0 +1,15 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /indentity
+
+
+spring:
+  datasource:
+    url: "jdbc:mysql://localhost:3306/indentity_service"
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
