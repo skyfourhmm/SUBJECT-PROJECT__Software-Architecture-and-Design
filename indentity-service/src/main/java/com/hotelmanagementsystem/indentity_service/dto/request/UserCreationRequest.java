@@ -1,6 +1,8 @@
 package com.hotelmanagementsystem.indentity_service.dto.request;
 
 import jakarta.persistence.Column;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
@@ -8,6 +10,8 @@ public class UserCreationRequest {
     @Column(unique = true, nullable = false)
     private String username; // Tên đăng nhập
 
+    @Size(min = 8, message = "Password must be at least 8 characters long")
+    @Pattern(regexp = ".*[a-zA-Z].*", message = "Password must contain at least one letter")
     @Column(nullable = false)
     private String passwordHash; // Mật khẩu đã hash (bcrypt)
 
