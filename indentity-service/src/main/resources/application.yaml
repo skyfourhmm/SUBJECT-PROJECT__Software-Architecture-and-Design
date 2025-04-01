@@ -1,15 +1,17 @@
 server:
   port: 8080
   servlet:
-    context-path: /indentity
-
+    context-path: /identity  # Sửa chính tả từ "indentity" thành "identity"
 
 spring:
   datasource:
-    url: "jdbc:mysql://localhost:3306/indentity_service"
-    username: root
+    url: jdbc:postgresql://localhost:5432/identity_service  # Đổi sang PostgreSQL
+    username: postgres
     password: root
+    driver-class-name: org.postgresql.Driver  # Thêm driver cho PostgreSQL
+
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect  # Sử dụng dialect của PostgreSQL
     hibernate:
       ddl-auto: update
     show-sql: true
