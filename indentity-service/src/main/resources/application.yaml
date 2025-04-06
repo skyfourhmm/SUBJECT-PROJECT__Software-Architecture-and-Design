@@ -15,3 +15,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+jwt:
+  secret: cXWgolhZuRwCyI0mQGb1UtrtIrMLbpfL7T/vjghQnPi9M7NFU6o8Mp0Vk4s/7s4T12wbuO/4LbE+/uy+JyzMeA==
+
+

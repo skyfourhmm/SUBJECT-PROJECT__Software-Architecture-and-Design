@@ -9,10 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -30,4 +27,12 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<ResponseDTO>  login(@RequestBody LoginRequest loginRequest) {
+        ResponseDTO response = authService.loginUser(loginRequest);
+        if ("ERROR".equals(response.getStatus())) {
+            return ResponseEntity.badRequest().body(response);  // Trả về mã 400 với thông báo lỗi
+        }
+        return ResponseEntity.ok(response);
+    }
 }

@@ -9,12 +9,17 @@ import com.hotelmanagementsystem.indentity_service.repository.KhachHangRepositor
 import com.hotelmanagementsystem.indentity_service.repository.LoaiNhanVienRepository;
 import com.hotelmanagementsystem.indentity_service.repository.NhanVienRepository;
 import com.hotelmanagementsystem.indentity_service.repository.TaiKhoanRepository;
+import com.hotelmanagementsystem.indentity_service.security.JwtUtil;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,6 +34,10 @@ public class AuthService {
 
     @Autowired
     private NhanVienRepository nhanVienRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Transactional
     public ResponseDTO registerUser(RegisterRequest registerRequest) {
@@ -107,4 +116,29 @@ public class AuthService {
 
         return new ResponseDTO("Đăng ký thành công!", "SUCCESS");
     }
+
+    public ResponseDTO loginUser(LoginRequest loginRequest) {
+        // Kiểm tra tên đăng nhập và mật khẩu
+        Optional<TaiKhoan> taiKhoanOpt = taiKhoanRepository.findByTenDangNhap(loginRequest.getTenDangNhap());
+        if (!taiKhoanOpt.isPresent()) {
+            return new ResponseDTO("Tên đăng nhập không tồn tại.", "ERROR");
+        }
+
+        if (loginRequest == null || loginRequest.getMatKhau() == null || loginRequest.getMatKhau().isEmpty()) {
+            return new ResponseDTO("Phải có mật khẩu.", "ERROR");
+        }
+
+        TaiKhoan taiKhoan = taiKhoanOpt.get();
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        if (!passwordEncoder.matches(loginRequest.getMatKhau(), taiKhoan.getMatKhau())) {
+            return new ResponseDTO("Mật khẩu không đúng.", "ERROR");
+        }
+
+
+        // Xử lý tạo JWT token
+        String token = jwtUtil.generateToken(taiKhoan);
+
+        return new ResponseDTO("Đăng nhập thành công!", "SUCCESS", token);
+    }
+
 }
