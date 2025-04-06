@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -14,16 +15,14 @@ import java.util.Date;
 @Table(name = "NhanVien")
 public class NhanVien {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "maNhanVien")
-    private Long maNhanVien;
+    @Column(name = "maNhanVien", updatable = false, nullable = false)
+    private String maNhanVien = UUID.randomUUID().toString();
 
     private String hoTen;
     private String gioiTinh;
     private Date ngaySinh;
     private String diaChi;
     private String soDienThoai;
-    private String CCCD;
     private String anhThe;
 
     @ManyToOne
@@ -31,8 +30,7 @@ public class NhanVien {
     private LoaiNhanVien loaiNhanVien;
 
     @OneToOne
-    @JoinColumn(name = "tenDangNhap")
+    @JoinColumn(name = "taiKhoan_id", referencedColumnName = "id")
     private TaiKhoan taiKhoan;
-
     // Getters & Setters
 }

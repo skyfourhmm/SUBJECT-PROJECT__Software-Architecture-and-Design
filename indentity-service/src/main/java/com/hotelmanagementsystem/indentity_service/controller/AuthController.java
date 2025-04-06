@@ -3,8 +3,10 @@ package com.hotelmanagementsystem.indentity_service.controller;
 import com.hotelmanagementsystem.indentity_service.dto.LoginRequest;
 import com.hotelmanagementsystem.indentity_service.dto.LoginResponse;
 import com.hotelmanagementsystem.indentity_service.dto.RegisterRequest;
+import com.hotelmanagementsystem.indentity_service.dto.ResponseDTO;
 import com.hotelmanagementsystem.indentity_service.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,27 +18,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final AuthService authService;
+    @Autowired
+    private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
-        try {
-            authService.register(request);
-            return ResponseEntity.ok("Đăng ký tài khoản thành công!");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Lỗi khi đăng ký: " + e.getMessage());
+    public ResponseEntity<ResponseDTO> register(@RequestBody RegisterRequest registerRequest) {
+        ResponseDTO response = authService.registerUser(registerRequest);
+        if ("ERROR".equals(response.getStatus())) {
+            return ResponseEntity.badRequest().body(response);  // Trả về mã 400 với thông báo lỗi
         }
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        System.out.println(request);
-        try {
-            LoginResponse response = authService.login(request);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Sai tên đăng nhập hoặc mật khẩu");
-        }
+        return ResponseEntity.ok(response);
     }
 
 }

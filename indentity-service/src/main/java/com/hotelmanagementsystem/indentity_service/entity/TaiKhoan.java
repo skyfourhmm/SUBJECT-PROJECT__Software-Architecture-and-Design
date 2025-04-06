@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -12,6 +14,9 @@ import lombok.NoArgsConstructor;
 @Table(name = "TaiKhoan")
 public class TaiKhoan {
     @Id
+    @Column(name = "id", updatable = false, nullable = false)
+    private String id = UUID.randomUUID().toString();
+
     @Column(name = "tenDangNhap", unique = true, nullable = false)
     private String tenDangNhap;
 

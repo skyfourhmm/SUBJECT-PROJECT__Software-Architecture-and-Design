@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -12,9 +14,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "LoaiNhanVien")
 public class LoaiNhanVien {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "maLoaiNhanVien")
-    private Long maLoaiNhanVien;
+    @Column(name = "maLoaiNhanVien", updatable = false, nullable = false)
+    private String maLoaiNhanVien = UUID.randomUUID().toString();
 
     private String tenLoaiNhanVien;
     private boolean trangThai;
