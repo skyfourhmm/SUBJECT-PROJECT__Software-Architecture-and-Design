@@ -33,6 +33,9 @@ public class AuthService {
     private KhachHangRepository khachHangRepository;
 
     @Autowired
+    private LoaiNhanVienRepository loaiNhanVienRepository;
+
+    @Autowired
     private NhanVienRepository nhanVienRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -99,6 +102,11 @@ public class AuthService {
 
             khachHangRepository.save(khachHang);
         } else if (registerRequest.getRole() == Role.EMPLOYEE || registerRequest.getRole() == Role.OWNER) {
+
+            LoaiNhanVien loaiNhanVien = loaiNhanVienRepository.findByRole(registerRequest.getRole())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy loại nhân viên với role: " + registerRequest.getRole()));
+
+
             // Tạo nhân viên
             NhanVien nhanVien = new NhanVien();
             nhanVien.setHoTen(registerRequest.getHoTen());
@@ -107,10 +115,10 @@ public class AuthService {
             nhanVien.setDiaChi(registerRequest.getDiaChi());
             nhanVien.setSoDienThoai(registerRequest.getSoDienThoai());
             nhanVien.setAnhThe("");  // Không có ảnh thẻ lúc đăng ký
+            nhanVien.setTaiKhoan(taiKhoan);  // Liên kết tài khoản với nhân viên
+            nhanVien.setLoaiNhanVien(loaiNhanVien);  // Đặt loại nhân viên
 
-            // Đặt loại nhân viên mặc định (có thể tùy chỉnh)
-            nhanVien.setTaiKhoan(taiKhoan);
-
+            // Lưu nhân viên vào cơ sở dữ liệu
             nhanVienRepository.save(nhanVien);
         }
 

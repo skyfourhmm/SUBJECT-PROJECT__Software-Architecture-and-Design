@@ -10,11 +10,10 @@ import java.util.Date;
 public class RegisterRequest {
     private String tenDangNhap;
     private String matKhau;
-    private Role role; // OWNER, EMPLOYEE, CUSTOMER
-
     private String hoTen;
     private String gioiTinh;
     private Date ngaySinh;
     private String diaChi;
     private String soDienThoai;
+    private Role role;  // Vai trò của người dùng (OWNER, EMPLOYEE, CUSTOMER)
 }

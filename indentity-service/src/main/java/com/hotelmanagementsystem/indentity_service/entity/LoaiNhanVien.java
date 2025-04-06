@@ -20,5 +20,9 @@ public class LoaiNhanVien {
     private String tenLoaiNhanVien;
     private boolean trangThai;
 
+    // Thêm trường Role
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     // Getters & Setters
 }
