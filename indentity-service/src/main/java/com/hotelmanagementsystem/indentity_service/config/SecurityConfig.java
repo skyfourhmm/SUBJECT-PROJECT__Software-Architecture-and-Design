@@ -24,6 +24,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/logout").permitAll()  // Cho phép các endpoint đăng ký và đăng nhập được truy cập công khai
                         .requestMatchers("/api/customer/me").authenticated()
+                        .requestMatchers("/api/employee/me").authenticated()
                         .requestMatchers("/api/customer/**").hasAnyRole("EMPLOYEE", "OWNER")
                         .anyRequest().authenticated()  // Các request còn lại yêu cầu xác thực
                 )
