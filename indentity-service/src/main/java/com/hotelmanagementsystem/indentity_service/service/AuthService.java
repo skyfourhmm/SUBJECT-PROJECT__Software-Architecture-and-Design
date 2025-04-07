@@ -1,9 +1,6 @@
 package com.hotelmanagementsystem.indentity_service.service;
 
-import com.hotelmanagementsystem.indentity_service.dto.LoginRequest;
-import com.hotelmanagementsystem.indentity_service.dto.LoginResponse;
-import com.hotelmanagementsystem.indentity_service.dto.RegisterRequest;
-import com.hotelmanagementsystem.indentity_service.dto.ResponseDTO;
+import com.hotelmanagementsystem.indentity_service.dto.*;
 import com.hotelmanagementsystem.indentity_service.entity.*;
 import com.hotelmanagementsystem.indentity_service.repository.KhachHangRepository;
 import com.hotelmanagementsystem.indentity_service.repository.LoaiNhanVienRepository;
@@ -153,5 +150,36 @@ public class AuthService {
         jwtUtil.addToBlacklist(token);
         return new ResponseDTO("Đăng xuất thành công!", "SUCCESS");
     }
+
+    public ResponseDTO changePassword(ChangePasswordRequest changePasswordRequest, String token) {
+        // 1. Lấy tên đăng nhập từ token
+        String username = jwtUtil.getUsernameFromToken(token);
+        if (username == null) {
+            return new ResponseDTO("Token không hợp lệ.", "ERROR");
+        }
+
+        // 2. Tìm tài khoản dựa trên tên đăng nhập
+        Optional<TaiKhoan> taiKhoanOpt = taiKhoanRepository.findByTenDangNhap(username);
+        if (!taiKhoanOpt.isPresent()) {
+            return new ResponseDTO("Tài khoản không tồn tại.", "ERROR");
+        }
+
+        TaiKhoan taiKhoan = taiKhoanOpt.get();
+
+        // 3. Kiểm tra mật khẩu cũ
+        if (!passwordEncoder.matches(changePasswordRequest.getCurrentPassword(), taiKhoan.getMatKhau())) {
+            return new ResponseDTO("Mật khẩu cũ không đúng.", "ERROR");
+        }
+
+        // 4. Mã hóa mật khẩu mới
+        String newEncryptedPassword = passwordEncoder.encode(changePasswordRequest.getNewPassword());
+
+        // 5. Cập nhật mật khẩu mới vào cơ sở dữ liệu
+        taiKhoan.setMatKhau(newEncryptedPassword);
+        taiKhoanRepository.save(taiKhoan);
+
+        return new ResponseDTO("Đổi mật khẩu thành công!", "SUCCESS");
+    }
+
 
 }

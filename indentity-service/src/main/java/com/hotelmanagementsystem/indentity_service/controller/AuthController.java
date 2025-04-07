@@ -1,9 +1,6 @@
 package com.hotelmanagementsystem.indentity_service.controller;
 
-import com.hotelmanagementsystem.indentity_service.dto.LoginRequest;
-import com.hotelmanagementsystem.indentity_service.dto.LoginResponse;
-import com.hotelmanagementsystem.indentity_service.dto.RegisterRequest;
-import com.hotelmanagementsystem.indentity_service.dto.ResponseDTO;
+import com.hotelmanagementsystem.indentity_service.dto.*;
 import com.hotelmanagementsystem.indentity_service.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +41,16 @@ public class AuthController {
 
         String token = authHeader.substring(7); // Bỏ "Bearer "
         ResponseDTO response = authService.logoutUser(token);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<ResponseDTO> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest,
+                                                      @RequestHeader("Authorization") String authHeader) {
+
+        System.out.println("authHeader" + authHeader);
+        String token = authHeader.substring(7);  // Bỏ "Bearer " ra
+        ResponseDTO response = authService.changePassword(changePasswordRequest, token);
         return ResponseEntity.ok(response);
     }
 
