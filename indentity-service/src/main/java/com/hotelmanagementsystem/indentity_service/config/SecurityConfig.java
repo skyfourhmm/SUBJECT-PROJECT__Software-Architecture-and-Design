@@ -23,7 +23,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/logout").permitAll()  // Cho phép các endpoint đăng ký và đăng nhập được truy cập công khai
-                        .requestMatchers("/api/khachhang/**").hasAnyRole("EMPLOYEE", "OWNER")
+                        .requestMatchers("/api/customer/**").hasAnyRole("EMPLOYEE", "OWNER")
                         .anyRequest().authenticated()  // Các request còn lại yêu cầu xác thực
                 )
                 .csrf(csrf -> csrf.disable());  // Tắt CSRF nếu không cần bảo vệ

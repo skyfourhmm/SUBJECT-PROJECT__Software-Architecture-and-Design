@@ -1,10 +1,7 @@
 package com.hotelmanagementsystem.indentity_service.security;
 
 import com.hotelmanagementsystem.indentity_service.entity.TaiKhoan;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.JwtParser;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -30,8 +27,6 @@ public class JwtUtil {
     }
 
 
-
-
     public String generateToken(TaiKhoan taiKhoan) {
         // Tạo JWT token với thông tin của người dùng
         return Jwts.builder()
@@ -45,8 +40,13 @@ public class JwtUtil {
 
 
     public String extractUsername(String token) {
-        return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
+        return getClaims(token).getSubject();
     }
+
+    public String extractRole(String token) {
+        return getClaims(token).get("role", String.class);
+    }
+
 
     public boolean validateToken(String token) {
         try {
@@ -55,6 +55,7 @@ public class JwtUtil {
             }
 
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
+            getClaims(token);
             return true;
         } catch (Exception e) {
             return false;
@@ -67,6 +68,13 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();  // "sub" là tên đăng nhập (username)
+    }
+
+    private Claims getClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(jwtSecret)
+                .parseClaimsJws(token)
+                .getBody();
     }
 
 }

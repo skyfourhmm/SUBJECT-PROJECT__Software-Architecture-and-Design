@@ -24,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
                 tk.getTenDangNhap(),
                 tk.getMatKhau(),
-                List.of(new SimpleGrantedAuthority(tk.getRole().name()))
+                List.of(new SimpleGrantedAuthority("ROLE_" + tk.getRole().name()))
         );
     }
 }

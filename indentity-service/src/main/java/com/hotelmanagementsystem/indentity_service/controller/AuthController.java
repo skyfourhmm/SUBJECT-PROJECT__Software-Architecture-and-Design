@@ -48,7 +48,6 @@ public class AuthController {
     public ResponseEntity<ResponseDTO> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest,
                                                       @RequestHeader("Authorization") String authHeader) {
 
-        System.out.println("authHeader" + authHeader);
         String token = authHeader.substring(7);  // Bỏ "Bearer " ra
         ResponseDTO response = authService.changePassword(changePasswordRequest, token);
         return ResponseEntity.ok(response);
