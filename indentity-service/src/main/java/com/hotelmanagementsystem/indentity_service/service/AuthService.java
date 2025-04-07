@@ -149,4 +149,9 @@ public class AuthService {
         return new ResponseDTO("Đăng nhập thành công!", "SUCCESS", token);
     }
 
+    public ResponseDTO logoutUser(String token) {
+        jwtUtil.addToBlacklist(token);
+        return new ResponseDTO("Đăng xuất thành công!", "SUCCESS");
+    }
+
 }

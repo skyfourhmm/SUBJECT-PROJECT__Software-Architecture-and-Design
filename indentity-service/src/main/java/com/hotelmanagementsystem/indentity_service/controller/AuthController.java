@@ -35,4 +35,16 @@ public class AuthController {
         }
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ResponseDTO> logout(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body(new ResponseDTO("Token không hợp lệ.", "ERROR"));
+        }
+
+        String token = authHeader.substring(7); // Bỏ "Bearer "
+        ResponseDTO response = authService.logoutUser(token);
+        return ResponseEntity.ok(response);
+    }
+
 }
