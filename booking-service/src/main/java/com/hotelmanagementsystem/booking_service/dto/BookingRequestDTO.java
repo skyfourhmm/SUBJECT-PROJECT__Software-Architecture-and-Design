@@ -1,5 +1,6 @@
-package com.hotelmanagementsystem.booking_service.DTO;
+package com.hotelmanagementsystem.booking_service.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -11,5 +12,7 @@ public class BookingRequestDTO {
     private LocalDate checkinDate;
     private LocalDate checkoutDate;
     private List<Long> roomIds;
-    private String bookingType; // "ONLINE" or "COUNTER"
+
+    @NotNull(message = "Booking type must not be null")
+    private String bookingType;
 }

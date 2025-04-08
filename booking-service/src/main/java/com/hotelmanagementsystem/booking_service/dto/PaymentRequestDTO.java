@@ -1,4 +1,4 @@
-package com.hotelmanagementsystem.booking_service.DTO;
+package com.hotelmanagementsystem.booking_service.dto;
 
 import lombok.Data;
 

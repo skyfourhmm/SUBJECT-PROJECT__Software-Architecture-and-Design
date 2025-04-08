@@ -1,16 +1,18 @@
-package com.hotelmanagementsystem.booking_service.Controller;
+package com.hotelmanagementsystem.booking_service.controller;
 
-import com.hotelmanagementsystem.booking_service.DTO.BookingRequestDTO;
-import com.hotelmanagementsystem.booking_service.DTO.BookingResponseDTO;
-import com.hotelmanagementsystem.booking_service.DTO.PaymentRequestDTO;
+import com.hotelmanagementsystem.booking_service.dto.BookingRequestDTO;
+import com.hotelmanagementsystem.booking_service.dto.BookingResponseDTO;
+import com.hotelmanagementsystem.booking_service.dto.PaymentRequestDTO;
 
-import com.hotelmanagementsystem.booking_service.Entity.Booking;
-import com.hotelmanagementsystem.booking_service.Entity.Payment;
-import com.hotelmanagementsystem.booking_service.Entity.Room;
+import com.hotelmanagementsystem.booking_service.entity.Booking;
+import com.hotelmanagementsystem.booking_service.entity.Payment;
+import com.hotelmanagementsystem.booking_service.entity.Room;
 
-import com.hotelmanagementsystem.booking_service.Service.BookingService;
+import com.hotelmanagementsystem.booking_service.service.BookingService;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,9 +28,13 @@ public class BookingController {
 
     // Đặt phòng
     @PostMapping
-    public ResponseEntity<BookingResponseDTO> createBooking(@RequestBody BookingRequestDTO request) {
-        BookingResponseDTO response = bookingService.createBooking(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<BookingResponseDTO> createBooking(@Valid @RequestBody BookingRequestDTO request) {
+        try {
+            BookingResponseDTO response = bookingService.createBooking(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create booking: " + e.getMessage());
+        }
     }
 
     // Kiểm tra tình trạng phòng
@@ -42,7 +48,7 @@ public class BookingController {
 
     // Thanh toán
     @PostMapping("/payment")
-    public ResponseEntity<Payment> processPayment(@RequestBody PaymentRequestDTO request) {
+    public ResponseEntity<Payment> processPayment(@Valid @RequestBody PaymentRequestDTO request) {
         Payment payment = bookingService.processPayment(request);
         return ResponseEntity.ok(payment);
     }
@@ -58,7 +64,7 @@ public class BookingController {
     @PutMapping("/{id}")
     public ResponseEntity<BookingResponseDTO> updateBooking(
             @PathVariable Long id,
-            @RequestBody BookingRequestDTO request) {
+            @Valid @RequestBody BookingRequestDTO request) {
         BookingResponseDTO response = bookingService.updateBooking(id, request);
         return ResponseEntity.ok(response);
     }
@@ -68,5 +74,11 @@ public class BookingController {
     public ResponseEntity<List<Booking>> getBookingHistory(@PathVariable Long customerId) {
         List<Booking> bookings = bookingService.getBookingHistory(customerId);
         return ResponseEntity.ok(bookings);
+    }
+
+    // Xử lý ngoại lệ
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 }

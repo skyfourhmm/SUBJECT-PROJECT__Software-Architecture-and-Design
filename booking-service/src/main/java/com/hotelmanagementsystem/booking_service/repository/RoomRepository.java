@@ -1,6 +1,6 @@
-package com.hotelmanagementsystem.booking_service.DAO;
+package com.hotelmanagementsystem.booking_service.repository;
 
-import com.hotelmanagementsystem.booking_service.Entity.Room;
+import com.hotelmanagementsystem.booking_service.entity.Room;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

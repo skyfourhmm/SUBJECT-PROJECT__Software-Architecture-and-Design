@@ -1,12 +1,12 @@
-package com.hotelmanagementsystem.booking_service.Entity;
+package com.hotelmanagementsystem.booking_service.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "payment")
+@Table(name = "booking_room")
 @Data
-public class Payment {
+public class BookingRoom {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -15,6 +15,7 @@ public class Payment {
     @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;
 
-    private Double amount;
-    private String status; // "PENDING", "COMPLETED", "FAILED"
+    @ManyToOne
+    @JoinColumn(name = "room_id", nullable = false)
+    private Room room;
 }
