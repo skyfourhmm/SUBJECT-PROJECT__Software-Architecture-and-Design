@@ -1,27 +1,19 @@
 package com.hotelmanagementsystem.hotel_service.dto;
 
-import java.util.List;
-
-public class HotelDTO {
+public class CreateHotelDTO {
     private String name;
     private String address;
     private String city;
     private String phone;
     private String email;
-    private List<String> amenities;
 
-    public HotelDTO() {
+    public CreateHotelDTO(String name, String address, String city, String phone, String email) {
         this.name = name;
         this.address = address;
         this.city = city;
         this.phone = phone;
         this.email = email;
-        this.amenities = amenities;
     }
-
-    public HotelDTO(String name, String address, String city, String phone, String email, List<String> collect) {
-    }
-
 
     public String getName() {
         return name;
@@ -47,14 +39,6 @@ public class HotelDTO {
         this.city = city;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public String getPhone() {
         return phone;
     }
@@ -63,11 +47,11 @@ public class HotelDTO {
         this.phone = phone;
     }
 
-    public List<String> getAmenities() {
-        return amenities;
+    public String getEmail() {
+        return email;
     }
 
-    public void setAmenities(List<String> amenities) {
-        this.amenities = amenities;
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

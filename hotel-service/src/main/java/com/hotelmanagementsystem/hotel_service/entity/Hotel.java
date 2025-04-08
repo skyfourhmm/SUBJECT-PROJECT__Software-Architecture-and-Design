@@ -16,7 +16,7 @@ public class Hotel {
     private String phone;
     private String email;
 
-    @OneToMany(mappedBy = "hotel")
+    @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL)
     private List<Room> rooms;
 
     @ManyToMany

@@ -1,9 +1,8 @@
 package com.hotelmanagementsystem.hotel_service.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 public class Amenity {
@@ -13,6 +12,10 @@ public class Amenity {
 
     private String name;
     private String description;
+
+    @ManyToMany(mappedBy = "amenities")
+    private List<Hotel> hotels;
+
 
     public Integer getId() {
         return id;
@@ -36,5 +39,13 @@ public class Amenity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public List<Hotel> getHotels() {
+        return hotels;
+    }
+
+    public void setHotels(List<Hotel> hotels) {
+        this.hotels = hotels;
     }
 }

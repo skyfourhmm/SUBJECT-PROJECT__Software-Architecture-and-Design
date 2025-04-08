@@ -1,10 +1,12 @@
 package com.hotelmanagementsystem.hotel_service.dto;
 
+import com.hotelmanagementsystem.hotel_service.entity.Hotel;
+
 import java.math.BigDecimal;
 
 public class RoomDTO {
     private String number;
-    private int floor;
+    private Integer floor;
     private String roomType;
     private BigDecimal price;
     private String status;
@@ -53,7 +55,7 @@ public class RoomDTO {
         return floor;
     }
 
-    public void setFloor(int floor) {
+    public void setFloor(Integer floor) {
         this.floor = floor;
     }
 }
