@@ -10,10 +10,6 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "hotel_id")
-    private Hotel hotel;
-
     private String username;
     private int rating;
     private String comment;
@@ -21,20 +17,13 @@ public class Review {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    // Getters và Setters
     public Integer getId() {
         return id;
     }
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public Hotel getHotel() {
-        return hotel;
-    }
-
-    public void setHotel(Hotel hotel) {
-        this.hotel = hotel;
     }
 
     public String getUsername() {

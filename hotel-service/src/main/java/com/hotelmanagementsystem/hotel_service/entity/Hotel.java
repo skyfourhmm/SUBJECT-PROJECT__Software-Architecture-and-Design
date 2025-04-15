@@ -1,32 +1,19 @@
 package com.hotelmanagementsystem.hotel_service.entity;
 
-import jakarta.persistence.*;
-
-import java.util.List;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 
 @Entity
 public class Hotel {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
+    private Integer id = 1; 
     private String name;
     private String address;
     private String city;
     private String phone;
     private String email;
 
-    @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL)
-    private List<Room> rooms;
-
-    @ManyToMany
-    @JoinTable(
-            name = "hotel_amenity",
-            joinColumns = @JoinColumn(name = "hotel_id"),
-            inverseJoinColumns = @JoinColumn(name = "amenity_id")
-    )
-    private List<Amenity> amenities;
-
+    // Getters và Setters
     public Integer getId() {
         return id;
     }
@@ -59,14 +46,6 @@ public class Hotel {
         this.city = city;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public String getPhone() {
         return phone;
     }
@@ -75,19 +54,11 @@ public class Hotel {
         this.phone = phone;
     }
 
-    public List<Amenity> getAmenities() {
-        return amenities;
+    public String getEmail() {
+        return email;
     }
 
-    public void setAmenities(List<Amenity> amenities) {
-        this.amenities = amenities;
-    }
-
-    public List<Room> getRooms() {
-        return rooms;
-    }
-
-    public void setRooms(List<Room> rooms) {
-        this.rooms = rooms;
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

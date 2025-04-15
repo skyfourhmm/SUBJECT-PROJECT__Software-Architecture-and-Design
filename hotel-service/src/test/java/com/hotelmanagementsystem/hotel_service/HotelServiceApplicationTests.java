@@ -1,4 +1,4 @@
-package com.hotelmanagementsystem.booking_service;
+package com.hotelmanagementsystem.hotel_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

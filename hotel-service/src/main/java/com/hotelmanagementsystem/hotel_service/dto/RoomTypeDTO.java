@@ -1,15 +1,16 @@
-package com.hotelmanagementsystem.hotel_service.entity;
+package com.hotelmanagementsystem.hotel_service.dto;
 
-import jakarta.persistence.*;
+import java.math.BigDecimal;
 
-@Entity
-public class Amenity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class RoomTypeDTO {
     private Integer id;
-
     private String name;
     private String description;
+    private BigDecimal pricePerNight;
+
+    // Constructor mặc định
+    public RoomTypeDTO() {
+    }
 
     // Getters và Setters
     public Integer getId() {
@@ -34,5 +35,13 @@ public class Amenity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public BigDecimal getPricePerNight() {
+        return pricePerNight;
+    }
+
+    public void setPricePerNight(BigDecimal pricePerNight) {
+        this.pricePerNight = pricePerNight;
     }
 }

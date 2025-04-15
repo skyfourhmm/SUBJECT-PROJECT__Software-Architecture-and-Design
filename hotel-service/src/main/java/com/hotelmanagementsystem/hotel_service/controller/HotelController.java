@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/hotels")
+@RequestMapping("/api/hotel")
 public class HotelController {
 
     @Autowired
@@ -19,58 +19,73 @@ public class HotelController {
     @Autowired
     private ReviewService reviewService;
 
-    @PostMapping
-    public ResponseEntity<HotelDTO> createHotel(@RequestBody CreateHotelDTO dto) {
-        HotelDTO hotel = hotelService.createHotel(dto);
-        return ResponseEntity.ok(hotel);
+    // Room endpoints
+    @GetMapping("/rooms")
+    public ResponseEntity<List<RoomDTO>> getHotelRooms() {
+        return ResponseEntity.ok(hotelService.getHotelRooms());
     }
 
-    @GetMapping
-    public ResponseEntity<List<HotelDTO>> getAllHotels() {
-        return ResponseEntity.ok(hotelService.getAllHotels());
+    @PostMapping("/rooms")
+    public ResponseEntity<RoomDTO> addRoom(@RequestBody CreateRoomDTO dto) {
+        return ResponseEntity.ok(hotelService.addRoom(dto));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<HotelDTO> getHotelInfo(@PathVariable int id) {
-        return ResponseEntity.ok(hotelService.getHotelInfo(id));
+    @PutMapping("/rooms/{roomId}")
+    public ResponseEntity<RoomDTO> updateRoom(
+            @PathVariable Integer roomId, @RequestBody UpdateRoomDTO dto) {
+        return ResponseEntity.ok(hotelService.updateRoom(roomId, dto));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<HotelDTO> updateHotel(@PathVariable int id, @RequestBody UpdateHotelDTO dto) {
-        HotelDTO updatedHotel = hotelService.updateHotel(id, dto);
-        return ResponseEntity.ok(updatedHotel);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteHotel(@PathVariable int id) {
-        hotelService.deleteHotel(id);
-        return ResponseEntity.noContent().build(); // HTTP 204
-    }
-
-    @GetMapping("/{id}/rooms")
-    public ResponseEntity<List<RoomDTO>> getHotelRooms(@PathVariable int id) {
-        return ResponseEntity.ok(hotelService.getHotelRooms(id));
-    }
-
-    @GetMapping("/{id}/amenities")
-    public ResponseEntity<List<String>> getAmenities(@PathVariable int id) {
-        return ResponseEntity.ok(hotelService.getHotelAmenities(id));
-    }
-
-    @PostMapping("/{id}/amenities")
-    public ResponseEntity<Void> assignAmenitiesToHotel(@PathVariable int id, @RequestBody List<Integer> amenityIds) {
-        hotelService.assignAmenitiesToHotel(id, amenityIds);
+    @DeleteMapping("/rooms/{roomId}")
+    public ResponseEntity<Void> deleteRoom(@PathVariable Integer roomId) {
+        hotelService.deleteRoom(roomId);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{id}/reviews")
-    public ResponseEntity<List<ReviewDTO>> getReviews(@PathVariable int id) {
-        return ResponseEntity.ok(reviewService.getReviewsByHotelId(id));
+    @GetMapping("/rooms/{roomId}/amenities")
+    public ResponseEntity<List<String>> getRoomAmenities(@PathVariable Integer roomId) {
+        return ResponseEntity.ok(hotelService.getRoomAmenities(roomId));
     }
 
-    @PostMapping("/{id}/reviews")
-    public ResponseEntity<String> addReview(@PathVariable int id, @RequestBody CreateReviewDTO dto) {
-        reviewService.addReview(id, dto);
+    @PostMapping("/rooms/{roomId}/amenities")
+    public ResponseEntity<Void> assignAmenitiesToRoom(
+            @PathVariable Integer roomId, @RequestBody List<Integer> amenityIds) {
+        hotelService.assignAmenitiesToRoom(roomId, amenityIds);
+        return ResponseEntity.ok().build();
+    }
+
+    // RoomType endpoints
+    @GetMapping("/room-types")
+    public ResponseEntity<List<RoomTypeDTO>> getRoomTypes() {
+        return ResponseEntity.ok(hotelService.getRoomTypes());
+    }
+
+    @PostMapping("/room-types")
+    public ResponseEntity<RoomTypeDTO> addRoomType(@RequestBody CreateRoomTypeDTO dto) {
+        return ResponseEntity.ok(hotelService.addRoomType(dto));
+    }
+
+    @PutMapping("/room-types/{roomTypeId}")
+    public ResponseEntity<RoomTypeDTO> updateRoomType(
+            @PathVariable Integer roomTypeId, @RequestBody UpdateRoomTypeDTO dto) {
+        return ResponseEntity.ok(hotelService.updateRoomType(roomTypeId, dto));
+    }
+
+    @DeleteMapping("/room-types/{roomTypeId}")
+    public ResponseEntity<Void> deleteRoomType(@PathVariable Integer roomTypeId) {
+        hotelService.deleteRoomType(roomTypeId);
+        return ResponseEntity.ok().build();
+    }
+
+    // Review endpoints
+    @GetMapping("/reviews")
+    public ResponseEntity<List<ReviewDTO>> getReviews() {
+        return ResponseEntity.ok(reviewService.getReviews());
+    }
+
+    @PostMapping("/reviews")
+    public ResponseEntity<String> addReview(@RequestBody CreateReviewDTO dto) {
+        reviewService.addReview(dto);
         return ResponseEntity.ok("Review added successfully");
     }
 }

@@ -1,7 +1,6 @@
 package com.hotelmanagementsystem.hotel_service.entity;
 
 import jakarta.persistence.*;
-
 import java.util.List;
 
 @Entity
@@ -9,10 +8,6 @@ public class Room {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @ManyToOne
-    @JoinColumn(name = "hotel_id")
-    private Hotel hotel;
 
     @ManyToOne
     @JoinColumn(name = "room_type_id")
@@ -32,20 +27,13 @@ public class Room {
     )
     private List<Amenity> amenities;
 
+    // Getters và Setters
     public Integer getId() {
         return id;
     }
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public Hotel getHotel() {
-        return hotel;
-    }
-
-    public void setHotel(Hotel hotel) {
-        this.hotel = hotel;
     }
 
     public RoomType getRoomType() {

@@ -1,13 +1,10 @@
 package com.hotelmanagementsystem.hotel_service.service.impl;
 
-import com.hotelmanagementsystem.hotel_service.dto.CreateHotelDTO;
-import com.hotelmanagementsystem.hotel_service.dto.HotelDTO;
-import com.hotelmanagementsystem.hotel_service.dto.RoomDTO;
-import com.hotelmanagementsystem.hotel_service.dto.UpdateHotelDTO;
-import com.hotelmanagementsystem.hotel_service.entity.Hotel;
+import com.hotelmanagementsystem.hotel_service.dto.*;
+import com.hotelmanagementsystem.hotel_service.entity.*;
 import com.hotelmanagementsystem.hotel_service.repository.AmenityRepository;
-import com.hotelmanagementsystem.hotel_service.repository.HotelRepository;
-import com.hotelmanagementsystem.hotel_service.entity.Amenity;
+import com.hotelmanagementsystem.hotel_service.repository.RoomRepository;
+import com.hotelmanagementsystem.hotel_service.repository.RoomTypeRepository;
 import com.hotelmanagementsystem.hotel_service.service.HotelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,140 +16,204 @@ import java.util.stream.Collectors;
 public class HotelServiceImpl implements HotelService {
 
     @Autowired
-    private HotelRepository hotelRepository;
+    private RoomRepository roomRepository;
+
+    @Autowired
+    private RoomTypeRepository roomTypeRepository;
 
     @Autowired
     private AmenityRepository amenityRepository;
 
+    // Room operations
     @Override
-    public HotelDTO createHotel(CreateHotelDTO dto) {
-        Hotel hotel = new Hotel();
-        hotel.setName(dto.getName());
-        hotel.setAddress(dto.getAddress());
-        hotel.setCity(dto.getCity());
-        hotel.setPhone(dto.getPhone());
-        hotel.setEmail(dto.getEmail());
-
-        Hotel saved = hotelRepository.save(hotel);
-
-        return new HotelDTO(
-                saved.getName(),
-                saved.getAddress(),
-                saved.getCity(),
-                saved.getPhone(),
-                saved.getEmail(),
-                saved.getAmenities().stream()
-                        .map(Amenity::getName)
-                        .collect(Collectors.toList())
-        );
-    }
-
-    @Override
-    public HotelDTO updateHotel(int id, UpdateHotelDTO dto) {
-        Hotel hotel = hotelRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Hotel not found"));
-        hotel.setName(dto.getName());
-        hotel.setAddress(dto.getAddress());
-        hotel.setCity(dto.getCity());
-        hotel.setPhone(dto.getPhone());
-        hotel.setEmail(dto.getEmail());
-
-        Hotel updated = hotelRepository.save(hotel);
-
-        return new HotelDTO(
-                updated.getName(),
-                updated.getAddress(),
-                updated.getCity(),
-                updated.getPhone(),
-                updated.getEmail(),
-                updated.getAmenities().stream()
-                        .map(Amenity::getName)
-                        .collect(Collectors.toList())
-        );
-    }
-
-    @Override
-    public void deleteHotel(int id) {
-        if (!hotelRepository.existsById(id)) {
-            throw new RuntimeException("Hotel not found with id: " + id);
-        }
-        hotelRepository.deleteById(id);
-    }
-
-    @Override
-    public List<HotelDTO> getAllHotels() {
-        return hotelRepository.findAll().stream()
-                .map(hotel -> new HotelDTO(
-                        hotel.getName(),
-                        hotel.getAddress(),
-                        hotel.getCity(),
-                        hotel.getPhone(),
-                        hotel.getEmail(),
-                        hotel.getAmenities().stream()
-                                .map(Amenity::getName)
-                                .collect(Collectors.toList())
-                ))
+    public List<RoomDTO> getHotelRooms() {
+        return roomRepository.findAll().stream()
+                .map(this::mapToRoomDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public HotelDTO getHotelInfo(int hotelId) {
-        Hotel hotel = hotelRepository.findById(hotelId)
-                .orElseThrow(() -> new RuntimeException("Hotel not found"));
+    public RoomDTO addRoom(CreateRoomDTO dto) {
+        if (roomRepository.existsByNumber(dto.getNumber())) {
+            throw new IllegalArgumentException("Room number already exists");
+        }
 
-        HotelDTO dto = new HotelDTO();
-        dto.setName(hotel.getName());
-        dto.setAddress(hotel.getAddress());
-        dto.setCity(hotel.getCity());
-        dto.setPhone(hotel.getPhone());
-        dto.setEmail(hotel.getEmail());
+        RoomType roomType = roomTypeRepository.findById(dto.getRoomTypeId())
+                .orElseThrow(() -> new IllegalArgumentException("Room type not found"));
+
+        Room room = new Room();
+        room.setNumber(dto.getNumber());
+        room.setFloor(dto.getFloor());
+        room.setRoomType(roomType);
+        room.setStatus(RoomStatus.valueOf(dto.getStatus()));
+
+        if (dto.getAmenityIds() != null && !dto.getAmenityIds().isEmpty()) {
+            List<Amenity> amenities = amenityRepository.findAllById(dto.getAmenityIds());
+            if (amenities.isEmpty()) {
+                throw new IllegalArgumentException("No valid amenities found");
+            }
+            room.setAmenities(amenities);
+        }
+
+        Room savedRoom = roomRepository.save(room);
+        return mapToRoomDTO(savedRoom);
+    }
+
+    @Override
+    public RoomDTO updateRoom(Integer roomId, UpdateRoomDTO dto) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("Room not found"));
+
+        if (dto.getNumber() != null && !dto.getNumber().equals(room.getNumber())) {
+            if (roomRepository.existsByNumber(dto.getNumber())) {
+                throw new IllegalArgumentException("Room number already exists");
+            }
+            room.setNumber(dto.getNumber());
+        }
+
+        if (dto.getFloor() != null) {
+            room.setFloor(dto.getFloor());
+        }
+
+        if (dto.getRoomTypeId() != null) {
+            RoomType roomType = roomTypeRepository.findById(dto.getRoomTypeId())
+                    .orElseThrow(() -> new IllegalArgumentException("Room type not found"));
+            room.setRoomType(roomType);
+        }
+
+        if (dto.getStatus() != null) {
+            room.setStatus(RoomStatus.valueOf(dto.getStatus()));
+        }
+
+        if (dto.getAmenityIds() != null) {
+            List<Amenity> amenities = amenityRepository.findAllById(dto.getAmenityIds());
+            room.setAmenities(amenities);
+        }
+
+        Room updatedRoom = roomRepository.save(room);
+        return mapToRoomDTO(updatedRoom);
+    }
+
+    @Override
+    public void deleteRoom(Integer roomId) {
+        if (!roomRepository.existsById(roomId)) {
+            throw new IllegalArgumentException("Room not found");
+        }
+        roomRepository.deleteById(roomId);
+    }
+
+    @Override
+    public void assignAmenitiesToRoom(Integer roomId, List<Integer> amenityIds) {
+        if (amenityIds == null || amenityIds.isEmpty()) {
+            throw new IllegalArgumentException("Amenity IDs must not be empty");
+        }
+
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("Room not found"));
+
+        List<Amenity> amenities = amenityRepository.findAllById(amenityIds);
+        if (amenities.isEmpty()) {
+            throw new IllegalArgumentException("No valid amenities found");
+        }
+
+        room.setAmenities(amenities);
+        roomRepository.save(room);
+    }
+
+    @Override
+    public List<String> getRoomAmenities(Integer roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("Room not found"));
+
+        return room.getAmenities().stream()
+                .map(Amenity::getName)
+                .collect(Collectors.toList());
+    }
+
+    // RoomType operations
+    @Override
+    public List<RoomTypeDTO> getRoomTypes() {
+        return roomTypeRepository.findAll().stream()
+                .map(this::mapToRoomTypeDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public RoomTypeDTO addRoomType(CreateRoomTypeDTO dto) {
+        if (roomTypeRepository.existsByName(dto.getName())) {
+            throw new IllegalArgumentException("Room type name already exists");
+        }
+
+        RoomType roomType = new RoomType();
+        roomType.setName(dto.getName());
+        roomType.setDescription(dto.getDescription());
+        roomType.setPricePerNight(dto.getPricePerNight());
+
+        RoomType savedRoomType = roomTypeRepository.save(roomType);
+        return mapToRoomTypeDTO(savedRoomType);
+    }
+
+    @Override
+    public RoomTypeDTO updateRoomType(Integer roomTypeId, UpdateRoomTypeDTO dto) {
+        RoomType roomType = roomTypeRepository.findById(roomTypeId)
+                .orElseThrow(() -> new IllegalArgumentException("Room type not found"));
+
+        if (dto.getName() != null && !dto.getName().equals(roomType.getName())) {
+            if (roomTypeRepository.existsByName(dto.getName())) {
+                throw new IllegalArgumentException("Room type name already exists");
+            }
+            roomType.setName(dto.getName());
+        }
+
+        if (dto.getDescription() != null) {
+            roomType.setDescription(dto.getDescription());
+        }
+
+        if (dto.getPricePerNight() != null) {
+            roomType.setPricePerNight(dto.getPricePerNight());
+        }
+
+        RoomType updatedRoomType = roomTypeRepository.save(roomType);
+        return mapToRoomTypeDTO(updatedRoomType);
+    }
+
+    @Override
+    public void deleteRoomType(Integer roomTypeId) {
+        if (!roomTypeRepository.existsById(roomTypeId)) {
+            throw new IllegalArgumentException("Room type not found");
+        }
+        // Kiểm tra xem có phòng nào đang sử dụng loại phòng này không
+        List<Room> roomsUsingType = roomRepository.findAll().stream()
+                .filter(room -> room.getRoomType().getId().equals(roomTypeId))
+                .collect(Collectors.toList());
+        if (!roomsUsingType.isEmpty()) {
+            throw new IllegalArgumentException("Cannot delete room type in use");
+        }
+        roomTypeRepository.deleteById(roomTypeId);
+    }
+
+    // Helper methods for mapping
+    private RoomDTO mapToRoomDTO(Room room) {
+        RoomDTO dto = new RoomDTO();
+        dto.setNumber(room.getNumber());
+        dto.setFloor(room.getFloor());
+        dto.setPrice(room.getRoomType().getPricePerNight());
+        dto.setRoomType(room.getRoomType().getName());
+        dto.setStatus(room.getStatus().name());
         dto.setAmenities(
-                hotel.getAmenities().stream()
+                room.getAmenities().stream()
                         .map(Amenity::getName)
                         .collect(Collectors.toList())
         );
         return dto;
     }
 
-    @Override
-    public List<RoomDTO> getHotelRooms(int hotelId) {
-        Hotel hotel = hotelRepository.findById(hotelId)
-                .orElseThrow(() -> new RuntimeException("Hotel not found"));
-
-        return hotel.getRooms().stream()
-                .map(room -> {
-                    RoomDTO dto = new RoomDTO();
-                    dto.setNumber(room.getNumber());
-                    dto.setFloor(room.getFloor());
-                    dto.setPrice(room.getRoomType().getPricePerNight());
-                    dto.setRoomType(room.getRoomType().getName());
-                    dto.setStatus(room.getStatus().name());
-                    return dto;
-        }).collect(Collectors.toList());
+    private RoomTypeDTO mapToRoomTypeDTO(RoomType roomType) {
+        RoomTypeDTO dto = new RoomTypeDTO();
+        dto.setId(roomType.getId());
+        dto.setName(roomType.getName());
+        dto.setDescription(roomType.getDescription());
+        dto.setPricePerNight(roomType.getPricePerNight());
+        return dto;
     }
-
-    @Override
-    public List<String> getHotelAmenities(int hotelId) {
-        Hotel hotel = hotelRepository.findById(hotelId)
-                .orElseThrow(() -> new RuntimeException("Hotel not found"));
-
-        return hotel.getAmenities().stream()
-                .map(Amenity::getName)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public void assignAmenitiesToHotel(int hotelId, List<Integer> amenityIds) {
-        Hotel hotel = hotelRepository.findById(hotelId)
-                .orElseThrow(() -> new RuntimeException("Hotel not found"));
-
-        List<Amenity> amenities = amenityRepository.findAllById(amenityIds);
-        if (amenities.isEmpty()) {
-            throw new RuntimeException("No valid amenities found");
-        }
-
-        hotel.setAmenities(amenities);
-        hotelRepository.save(hotel);
-    }
-
 }

@@ -1,18 +1,16 @@
 package com.hotelmanagementsystem.hotel_service.dto;
 
-import java.math.BigDecimal;
 import java.util.List;
 
-public class RoomDTO {
+public class CreateRoomDTO {
     private String number;
     private Integer floor;
-    private String roomType;
-    private BigDecimal price;
+    private Integer roomTypeId;
     private String status;
-    private List<String> amenities;
+    private List<Integer> amenityIds;
 
     // Constructor mặc định
-    public RoomDTO() {
+    public CreateRoomDTO() {
     }
 
     // Getters và Setters
@@ -32,20 +30,12 @@ public class RoomDTO {
         this.floor = floor;
     }
 
-    public String getRoomType() {
-        return roomType;
+    public Integer getRoomTypeId() {
+        return roomTypeId;
     }
 
-    public void setRoomType(String roomType) {
-        this.roomType = roomType;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
+    public void setRoomTypeId(Integer roomTypeId) {
+        this.roomTypeId = roomTypeId;
     }
 
     public String getStatus() {
@@ -56,11 +46,11 @@ public class RoomDTO {
         this.status = status;
     }
 
-    public List<String> getAmenities() {
-        return amenities;
+    public List<Integer> getAmenityIds() {
+        return amenityIds;
     }
 
-    public void setAmenities(List<String> amenities) {
-        this.amenities = amenities;
+    public void setAmenityIds(List<Integer> amenityIds) {
+        this.amenityIds = amenityIds;
     }
 }
