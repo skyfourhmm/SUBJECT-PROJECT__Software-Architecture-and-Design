@@ -16,9 +16,8 @@ import java.util.concurrent.ThreadLocalRandom;
 @Table(name = "KhachHang")
 public class KhachHang {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "maKhachHang")
-    private Long maKhachHang;
+    @Column(name = "maKhachHang", updatable = false, nullable = false)
+    private String maKhachHang = UUID.randomUUID().toString();
 
     private String hoTen;
     private String gioiTinh;
@@ -29,21 +28,9 @@ public class KhachHang {
     private String ghiChu;
 
     @OneToOne
-    @JoinColumn(name = "tenDangNhap")
+    @JoinColumn(name = "taiKhoan_id", referencedColumnName = "id")
     private TaiKhoan taiKhoan;
 
-
-    @PrePersist
-    private void generateMaKhachHang() {
-        // Tạo mã ngẫu nhiên cho khách hàng
-        this.maKhachHang = generateRandomCode();
-    }
-
-    private Long generateRandomCode() {
-        // Sử dụng Random để tạo ra một số ngẫu nhiên và kết hợp với tiền tố "KH"
-        long randomNum = ThreadLocalRandom.current().nextLong(1000000000000L, 9999999999999L); // Số ngẫu nhiên từ 12 chữ số
-        return randomNum;
-    }
 
     // Getters & Setters
 }

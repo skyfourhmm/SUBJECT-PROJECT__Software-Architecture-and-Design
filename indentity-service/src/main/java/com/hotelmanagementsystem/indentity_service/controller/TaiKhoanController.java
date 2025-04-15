@@ -8,21 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/tai-khoan")
+@RequestMapping("/api/account")
 public class TaiKhoanController {
 
-    @Autowired
-    private TaiKhoanService taiKhoanService;
-
-    @PostMapping("/doi-mat-khau")
-    public ResponseEntity<?> doiMatKhau(@RequestBody ChangePasswordRequest request,
-                                        @RequestHeader("Authorization") String token) {
-        try {
-            taiKhoanService.doiMatKhau(request, token);
-            return ResponseEntity.ok("Đổi mật khẩu thành công!");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
 }
 

@@ -4,6 +4,8 @@ import lombok.Data;
 
 @Data
 public class ChangePasswordRequest {
-    private String oldPassword;
+    private String currentPassword;
     private String newPassword;
+
+    // Getters & Setters
 }

@@ -1,81 +1,185 @@
 package com.hotelmanagementsystem.indentity_service.service;
 
-import com.hotelmanagementsystem.indentity_service.dto.LoginRequest;
-import com.hotelmanagementsystem.indentity_service.dto.LoginResponse;
-import com.hotelmanagementsystem.indentity_service.dto.RegisterRequest;
-import com.hotelmanagementsystem.indentity_service.entity.KhachHang;
-import com.hotelmanagementsystem.indentity_service.entity.Role;
-import com.hotelmanagementsystem.indentity_service.entity.TaiKhoan;
+import com.hotelmanagementsystem.indentity_service.dto.*;
+import com.hotelmanagementsystem.indentity_service.entity.*;
 import com.hotelmanagementsystem.indentity_service.repository.KhachHangRepository;
+import com.hotelmanagementsystem.indentity_service.repository.LoaiNhanVienRepository;
+import com.hotelmanagementsystem.indentity_service.repository.NhanVienRepository;
 import com.hotelmanagementsystem.indentity_service.repository.TaiKhoanRepository;
+import com.hotelmanagementsystem.indentity_service.security.JwtUtil;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-    private final TaiKhoanRepository taiKhoanRepository;
-    private final KhachHangRepository khachHangRepository;
-    private final PasswordEncoder passwordEncoder; // Để mã hóa mật khẩu
-    private final JwtService jwtService;
+    @Autowired
+    private TaiKhoanRepository taiKhoanRepository;
+
+    @Autowired
+    private KhachHangRepository khachHangRepository;
+
+    @Autowired
+    private LoaiNhanVienRepository loaiNhanVienRepository;
+
+    @Autowired
+    private NhanVienRepository nhanVienRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Transactional
-    public void register(RegisterRequest request) {
-        // Kiểm tra xem tên đăng nhập đã tồn tại chưa
-        if (taiKhoanRepository.existsById(request.getTenDangNhap())) {
-            throw new RuntimeException("Tên đăng nhập đã tồn tại!");
+    public ResponseDTO registerUser(RegisterRequest registerRequest) {
+        // Kiểm tra xem tất cả các trường có được nhập đầy đủ không
+        if (registerRequest.getTenDangNhap() == null || registerRequest.getTenDangNhap().isEmpty()) {
+            return new ResponseDTO("Tên đăng nhập không được để trống.", "ERROR");
+        }
+        if (registerRequest.getMatKhau() == null || registerRequest.getMatKhau().isEmpty()) {
+            return new ResponseDTO("Mật khẩu không được để trống.", "ERROR");
+        }
+        if (registerRequest.getHoTen() == null || registerRequest.getHoTen().isEmpty()) {
+            return new ResponseDTO("Họ tên không được để trống.", "ERROR");
+        }
+        if (registerRequest.getGioiTinh() == null) {
+            return new ResponseDTO("Giới tính không được để trống.", "ERROR");
+        }
+        if (registerRequest.getNgaySinh() == null) {
+            return new ResponseDTO("Ngày sinh không được để trống.", "ERROR");
+        }
+        if (registerRequest.getDiaChi() == null || registerRequest.getDiaChi().isEmpty()) {
+            return new ResponseDTO("Địa chỉ không được để trống.", "ERROR");
+        }
+        if (registerRequest.getSoDienThoai() == null || registerRequest.getSoDienThoai().isEmpty()) {
+            return new ResponseDTO("Số điện thoại không được để trống.", "ERROR");
         }
 
-        // Mã hóa mật khẩu
-        String encodedPassword = passwordEncoder.encode(request.getMatKhau());
+        // Kiểm tra xem tên đăng nhập đã tồn tại chưa
+        Optional<TaiKhoan> existingTaiKhoan = taiKhoanRepository.findByTenDangNhap(registerRequest.getTenDangNhap());
+        if (existingTaiKhoan.isPresent()) {
+            return new ResponseDTO("Tên đăng nhập đã tồn tại.", "ERROR");
+        }
 
-        // Tạo mới tài khoản
+        // Hash mật khẩu trước khi lưu
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        String hashedPassword = passwordEncoder.encode(registerRequest.getMatKhau());
+
+        // Tạo tài khoản với mật khẩu đã được hash
         TaiKhoan taiKhoan = new TaiKhoan();
-        taiKhoan.setTenDangNhap(request.getTenDangNhap());
-        taiKhoan.setMatKhau(encodedPassword);
-        taiKhoan.setRole(Role.valueOf(request.getRole().toUpperCase()));
-        taiKhoan.setTrangThai(true); // Mặc định trạng thái là true (hoạt động)
+        taiKhoan.setTenDangNhap(registerRequest.getTenDangNhap());
+        taiKhoan.setMatKhau(hashedPassword);
+        taiKhoan.setRole(registerRequest.getRole());
+        taiKhoan.setTrangThai(true);  // Mặc định tài khoản được kích hoạt
 
-        // Lưu tài khoản vào cơ sở dữ liệu
         taiKhoanRepository.save(taiKhoan);
 
-        // Tạo mới khách hàng (vì đây là ví dụ cho khách hàng)
-        KhachHang khachHang = new KhachHang();
-        khachHang.setHoTen(request.getHoTen());
-        khachHang.setGioiTinh(request.getGioiTinh());
-        khachHang.setNgaySinh(request.getNgaySinh());
-        khachHang.setDiaChi(request.getDiaChi());
-        khachHang.setSoDienThoai(request.getSoDienThoai());
-        khachHang.setDiemThuong(0); // Khởi tạo điểm thưởng là 0
-        khachHang.setGhiChu(""); // Ghi chú ban đầu là rỗng
+        // Tạo khách hàng hoặc nhân viên tùy theo Role
+        if (registerRequest.getRole() == Role.CUSTOMER) {
+            // Tạo khách hàng
+            KhachHang khachHang = new KhachHang();
+            khachHang.setHoTen(registerRequest.getHoTen());
+            khachHang.setGioiTinh(registerRequest.getGioiTinh());
+            khachHang.setNgaySinh(registerRequest.getNgaySinh());
+            khachHang.setDiaChi(registerRequest.getDiaChi());
+            khachHang.setSoDienThoai(registerRequest.getSoDienThoai());
+            khachHang.setDiemThuong(0);  // Mặc định điểm thưởng là 0
+            khachHang.setGhiChu("");  // Không có ghi chú
+
+            khachHang.setTaiKhoan(taiKhoan);
+
+            khachHangRepository.save(khachHang);
+        } else if (registerRequest.getRole() == Role.EMPLOYEE || registerRequest.getRole() == Role.OWNER) {
+
+            LoaiNhanVien loaiNhanVien = loaiNhanVienRepository.findByRole(registerRequest.getRole())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy loại nhân viên với role: " + registerRequest.getRole()));
 
 
-        // Thiết lập quan hệ OneToOne với tài khoản
-        khachHang.setTaiKhoan(taiKhoan);
+            // Tạo nhân viên
+            NhanVien nhanVien = new NhanVien();
+            nhanVien.setHoTen(registerRequest.getHoTen());
+            nhanVien.setGioiTinh(registerRequest.getGioiTinh());
+            nhanVien.setNgaySinh(registerRequest.getNgaySinh());
+            nhanVien.setDiaChi(registerRequest.getDiaChi());
+            nhanVien.setSoDienThoai(registerRequest.getSoDienThoai());
+            nhanVien.setAnhThe("");  // Không có ảnh thẻ lúc đăng ký
+            nhanVien.setTaiKhoan(taiKhoan);  // Liên kết tài khoản với nhân viên
+            nhanVien.setLoaiNhanVien(loaiNhanVien);  // Đặt loại nhân viên
 
-
-        // Lưu khách hàng vào cơ sở dữ liệu
-        khachHangRepository.save(khachHang);
-    }
-
-    public LoginResponse login(LoginRequest request) {
-        // Tìm tài khoản theo tên đăng nhập
-        TaiKhoan taiKhoan = taiKhoanRepository.findById(request.getTenDangNhap())
-                .orElseThrow(() -> new RuntimeException("Tên đăng nhập không tồn tại"));
-
-        // Kiểm tra mật khẩu
-        if (!passwordEncoder.matches(request.getMatKhau(), taiKhoan.getMatKhau())) {
-            throw new RuntimeException("Sai mật khẩu");
+            // Lưu nhân viên vào cơ sở dữ liệu
+            nhanVienRepository.save(nhanVien);
         }
 
-        // Tạo JWT token
-        String token = jwtService.generateToken(taiKhoan.getTenDangNhap(), taiKhoan.getRole().toString());
-
-        // Trả về thông tin đăng nhập
-        return new LoginResponse(token, taiKhoan.getTenDangNhap(), taiKhoan.getRole().toString());
+        return new ResponseDTO("Đăng ký thành công!", "SUCCESS");
     }
+
+    public ResponseDTO loginUser(LoginRequest loginRequest) {
+        // Kiểm tra tên đăng nhập và mật khẩu
+        Optional<TaiKhoan> taiKhoanOpt = taiKhoanRepository.findByTenDangNhap(loginRequest.getTenDangNhap());
+        if (!taiKhoanOpt.isPresent()) {
+            return new ResponseDTO("Tên đăng nhập không tồn tại.", "ERROR");
+        }
+
+        if (loginRequest == null || loginRequest.getMatKhau() == null || loginRequest.getMatKhau().isEmpty()) {
+            return new ResponseDTO("Phải có mật khẩu.", "ERROR");
+        }
+
+        TaiKhoan taiKhoan = taiKhoanOpt.get();
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        if (!passwordEncoder.matches(loginRequest.getMatKhau(), taiKhoan.getMatKhau())) {
+            return new ResponseDTO("Mật khẩu không đúng.", "ERROR");
+        }
+
+
+        // Xử lý tạo JWT token
+        String token = jwtUtil.generateToken(taiKhoan);
+
+        return new ResponseDTO("Đăng nhập thành công!", "SUCCESS", token);
+    }
+
+    public ResponseDTO logoutUser(String token) {
+        jwtUtil.addToBlacklist(token);
+        return new ResponseDTO("Đăng xuất thành công!", "SUCCESS");
+    }
+
+    public ResponseDTO changePassword(ChangePasswordRequest changePasswordRequest, String token) {
+        // 1. Lấy tên đăng nhập từ token
+        String username = jwtUtil.getUsernameFromToken(token);
+        if (username == null) {
+            return new ResponseDTO("Token không hợp lệ.", "ERROR");
+        }
+
+        // 2. Tìm tài khoản dựa trên tên đăng nhập
+        Optional<TaiKhoan> taiKhoanOpt = taiKhoanRepository.findByTenDangNhap(username);
+        if (!taiKhoanOpt.isPresent()) {
+            return new ResponseDTO("Tài khoản không tồn tại.", "ERROR");
+        }
+
+        TaiKhoan taiKhoan = taiKhoanOpt.get();
+
+        // 3. Kiểm tra mật khẩu cũ
+        if (!passwordEncoder.matches(changePasswordRequest.getCurrentPassword(), taiKhoan.getMatKhau())) {
+            return new ResponseDTO("Mật khẩu cũ không đúng.", "ERROR");
+        }
+
+        // 4. Mã hóa mật khẩu mới
+        String newEncryptedPassword = passwordEncoder.encode(changePasswordRequest.getNewPassword());
+
+        // 5. Cập nhật mật khẩu mới vào cơ sở dữ liệu
+        taiKhoan.setMatKhau(newEncryptedPassword);
+        taiKhoanRepository.save(taiKhoan);
+
+        return new ResponseDTO("Đổi mật khẩu thành công!", "SUCCESS");
+    }
+
+
 }

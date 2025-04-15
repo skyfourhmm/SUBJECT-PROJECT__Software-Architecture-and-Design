@@ -8,5 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface TaiKhoanRepository extends JpaRepository<TaiKhoan, String> {
-    boolean existsById(String tenDangNhap); // Kiểm tra tên đăng nhập đã tồn tại
+    Optional<TaiKhoan> findByTenDangNhap(String tenDangNhap);
 }
+
