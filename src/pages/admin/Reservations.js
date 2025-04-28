@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import ReservationHeader from "../../components/admin/ReservationHeader";
+import BookingTable from "../../components/admin/BookingTable";
 
 function Reservations() {
-  const bookings = [
+  const [bookings, setBookings] = useState([
     {
       id: "LG-B00113",
       guestName: "John Miller",
@@ -9,7 +11,7 @@ function Reservations() {
       request: "Late Check-Out",
       nights: "3 nights",
       date: "July 10 - 13, 2023",
-      status: "Confirmed"
+      status: "Confirmed",
     },
     {
       id: "LG-B00114",
@@ -18,7 +20,7 @@ function Reservations() {
       request: "None",
       nights: "2 nights",
       date: "July 9 - 11, 2023",
-      status: "Confirmed"
+      status: "Confirmed",
     },
     {
       id: "LG-B00115",
@@ -27,126 +29,334 @@ function Reservations() {
       request: "Extra Pillows",
       nights: "5 nights",
       date: "July 8 - 13, 2023",
-      status: "Pending"
-    }
-  ];
+      status: "Pending",
+    },
+  ]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateRange, setDateRange] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [newBooking, setNewBooking] = useState({
+    id: "",
+    guestName: "",
+    roomType: "",
+    request: "",
+    nights: "",
+    date: "",
+    status: "Pending",
+  });
 
   const filteredBookings = bookings.filter((booking) => {
-    const searchMatch = booking.guestName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        booking.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        booking.roomType.toLowerCase().includes(searchQuery.toLowerCase());
+    const searchMatch =
+      booking.guestName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      booking.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      booking.roomType.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const statusMatch = statusFilter === "all" || booking.status.toLowerCase() === statusFilter;
+    const statusMatch =
+      statusFilter === "all" || booking.status.toLowerCase() === statusFilter;
 
     const dateMatch = !dateRange || booking.date.includes(dateRange);
 
     return searchMatch && statusMatch && dateMatch;
   });
 
+  const handleAddBooking = () => {
+    setNewBooking({
+      id: `LG-B${Math.floor(10000 + Math.random() * 90000)}`,
+      guestName: "",
+      roomType: "",
+      request: "",
+      nights: "",
+      date: "",
+      status: "Pending",
+    });
+    setShowAddModal(true);
+  };
+
+  const handleSaveNewBooking = () => {
+    if (
+      newBooking.guestName &&
+      newBooking.roomType &&
+      newBooking.nights &&
+      newBooking.date
+    ) {
+      setBookings([...bookings, newBooking]);
+      setShowAddModal(false);
+      setNewBooking({
+        id: "",
+        guestName: "",
+        roomType: "",
+        request: "",
+        nights: "",
+        date: "",
+        status: "Pending",
+      });
+    } else {
+      alert("Please fill in all required fields.");
+    }
+  };
+
+  const handleView = (booking) => {
+    setSelectedBooking(booking);
+    setShowViewModal(true);
+  };
+
+  const handleEdit = (booking) => {
+    setSelectedBooking(booking);
+    setNewBooking(booking);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (
+      newBooking.guestName &&
+      newBooking.roomType &&
+      newBooking.nights &&
+      newBooking.date
+    ) {
+      setBookings(
+        bookings.map((b) => (b.id === newBooking.id ? newBooking : b))
+      );
+      setShowEditModal(false);
+      setNewBooking({
+        id: "",
+        guestName: "",
+        roomType: "",
+        request: "",
+        nights: "",
+        date: "",
+        status: "Pending",
+      });
+    } else {
+      alert("Please fill in all required fields.");
+    }
+  };
+
+  const handleConfirmOrCancel = (booking) => {
+    const action = booking.status === "Pending" ? "confirm" : "cancel";
+    if (window.confirm(`Are you sure you want to ${action} this booking?`)) {
+      setBookings(
+        bookings.map((b) =>
+          b.id === booking.id
+            ? {
+                ...b,
+                status: action === "confirm" ? "Confirmed" : "Cancelled",
+              }
+            : b
+        )
+      );
+    }
+  };
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-semibold">Reservation List</h1>
-        <div className="flex gap-4">
-          <input
-              type="text"
-              placeholder="Search guest, status, etc"
-              className="pl-10 pr-4 py-2 border rounded-lg w-64"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <select 
-              className="px-4 py-2 text-gray-700 border rounded-lg"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Status</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="pending">Pending</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-            <div className="relative">
+      <ReservationHeader
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
+        onAddBooking={handleAddBooking}
+      />
+      <BookingTable
+        bookings={filteredBookings}
+        onView={handleView}
+        onEdit={handleEdit}
+        onConfirmOrCancel={handleConfirmOrCancel}
+      />
+
+      {/* Modal for Add Booking */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-lg font-semibold mb-4">Add New Booking</h2>
+            <div className="space-y-4">
               <input
                 type="text"
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                className="px-4 py-2 text-gray-700 border rounded-lg w-48"
+                placeholder="Guest Name"
+                value={newBooking.guestName}
+                onChange={(e) =>
+                  setNewBooking({ ...newBooking, guestName: e.target.value })
+                }
+                className="w-full p-2 border rounded"
               />
+              <input
+                type="text"
+                placeholder="Room Type"
+                value={newBooking.roomType}
+                onChange={(e) =>
+                  setNewBooking({ ...newBooking, roomType: e.target.value })
+                }
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="text"
+                placeholder="Request (optional)"
+                value={newBooking.request}
+                onChange={(e) =>
+                  setNewBooking({ ...newBooking, request: e.target.value })
+                }
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="text"
+                placeholder="Nights (e.g., 3 nights)"
+                value={newBooking.nights}
+                onChange={(e) =>
+                  setNewBooking({ ...newBooking, nights: e.target.value })
+                }
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="text"
+                placeholder="Date (e.g., July 10 - 13, 2023)"
+                value={newBooking.date}
+                onChange={(e) =>
+                  setNewBooking({ ...newBooking, date: e.target.value })
+                }
+                className="w-full p-2 border rounded"
+              />
+              <select
+                value={newBooking.status}
+                onChange={(e) =>
+                  setNewBooking({ ...newBooking, status: e.target.value })
+                }
+                className="w-full p-2 border rounded"
+              >
+                <option value="Pending">Pending</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
             </div>
-          <button className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center gap-2">
-            + Add Booking
-          </button>
+            <div className="flex gap-4 mt-4">
+              <button
+                onClick={handleSaveNewBooking}
+                className="px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="px-4 py-2 border rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="bg-white rounded-lg shadow">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Guest
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Room
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Request
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Duration
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Check-In/Out
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Action
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {filteredBookings.map((booking) => (
-              <tr key={booking.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <div>
-                    <div className="font-medium">{booking.guestName}</div>
-                    <div className="text-sm text-gray-500">{booking.id}</div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">{booking.roomType}</td>
-                <td className="px-6 py-4">{booking.request}</td>
-                <td className="px-6 py-4">{booking.nights}</td>
-                <td className="px-6 py-4">{booking.date}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-full text-sm ${
-                    booking.status === 'Confirmed' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-blue-100 text-blue-800'
-                  }`}>
-                    {booking.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex gap-2">
-                    <button className="p-1 hover:bg-gray-100 rounded">👁️</button>
-                    <button className="p-1 hover:bg-gray-100 rounded">📝</button>
-                    <button className="p-1 hover:bg-gray-100 rounded text-red-500">
-                      {booking.status === 'Pending' ? 'Confirm' : 'Cancel'}
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {/* Modal for View Booking */}
+      {showViewModal && selectedBooking && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-lg font-semibold mb-4">Booking Details</h2>
+            <div className="space-y-2">
+              <p><strong>ID:</strong> {selectedBooking.id}</p>
+              <p><strong>Guest Name:</strong> {selectedBooking.guestName}</p>
+              <p><strong>Room Type:</strong> {selectedBooking.roomType}</p>
+              <p><strong>Request:</strong> {selectedBooking.request || "None"}</p>
+              <p><strong>Duration:</strong> {selectedBooking.nights}</p>
+              <p><strong>Check-In/Out:</strong> {selectedBooking.date}</p>
+              <p><strong>Status:</strong> {selectedBooking.status}</p>
+            </div>
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="px-4 py-2 border rounded"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for Edit Booking */}
+      {showEditModal && selectedBooking && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-lg font-semibold mb-4">Edit Booking</h2>
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Guest Name"
+                value={newBooking.guestName}
+                onChange={(e) =>
+                  setNewBooking({ ...newBooking, guestName: e.target.value })
+                }
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="text"
+                placeholder="Room Type"
+                value={newBooking.roomType}
+                onChange={(e) =>
+                  setNewBooking({ ...newBooking, roomType: e.target.value })
+                }
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="text"
+                placeholder="Request (optional)"
+                value={newBooking.request}
+                onChange={(e) =>
+                  setNewBooking({ ...newBooking, request: e.target.value })
+                }
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="text"
+                placeholder="Nights (e.g., 3 nights)"
+                value={newBooking.nights}
+                onChange={(e) =>
+                  setNewBooking({ ...newBooking, nights: e.target.value })
+                }
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="text"
+                placeholder="Date (e.g., July 10 - 13, 2023)"
+                value={newBooking.date}
+                onChange={(e) =>
+                  setNewBooking({ ...newBooking, date: e.target.value })
+                }
+                className="w-full p-2 border rounded"
+              />
+              <select
+                value={newBooking.status}
+                onChange={(e) =>
+                  setNewBooking({ ...newBooking, status: e.target.value })
+                }
+                className="w-full p-2 border rounded"
+              >
+                <option value="Pending">Pending</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+            <div className="flex gap-4 mt-4">
+              <button
+                onClick={handleSaveEdit}
+                className="px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="px-4 py-2 border rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

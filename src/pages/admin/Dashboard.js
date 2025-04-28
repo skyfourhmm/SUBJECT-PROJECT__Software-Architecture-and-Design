@@ -1,8 +1,37 @@
-
-import React from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
+import React, { useState } from "react";
+import StatisticsCard from "../../components/admin/StatisticsCard";
+import BookingPieChart from "../../components/admin/BookingPieChart";
+import RoomAvailability from "../../components/admin/RoomAvailability";
+import TasksList from "../../components/admin/TasksList";
+import BookingList from "../../components/admin/BookingList";
+import RecentActivities from "../../components/admin/RecentActivities";
 
 function Dashboard() {
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showWidgetModal, setShowWidgetModal] = useState(false);
+  const [tasks, setTasks] = useState([
+    {
+      date: "June 19, 2023",
+      title: "Prepare Conference Room B (10 AM)",
+      status: "Completed",
+    },
+    {
+      date: "June 19, 2023",
+      title: "Restock 3rd Floor Supplies (Housekeeping)",
+      status: "In Progress",
+    },
+    {
+      date: "June 20, 2023",
+      title: "Inspect and Clean Pool Area (11 AM)",
+      status: "Pending",
+    },
+    {
+      date: "June 20, 2023",
+      title: "Check-In Assistance During Peak Hours (4 PM - 6 PM)",
+      status: "Pending",
+    },
+  ]);
+
   const bookingData = {
     platforms: [
       { name: "Direct Booking", value: 61 },
@@ -11,53 +40,30 @@ function Dashboard() {
       { name: "Airbnb", value: 9 },
       { name: "Hotels.com", value: 5 },
       { name: "Others", value: 2 },
-    ]
+    ],
   };
-
-  const tasks = [
-    {
-      date: "June 19, 2023",
-      title: "Prepare Conference Room B (10 AM)",
-      status: "Completed"
-    },
-    {
-      date: "June 19, 2023",
-      title: "Restock 3rd Floor Supplies (Housekeeping)",
-      status: "In Progress"
-    },
-    {
-      date: "June 20, 2023",
-      title: "Inspect and Clean Pool Area (11 AM)",
-      status: "Pending"
-    },
-    {
-      date: "June 20, 2023",
-      title: "Check-In Assistance During Peak Hours (4 PM - 6 PM)",
-      status: "Pending"
-    }
-  ];
 
   const recentActivities = [
     {
       time: "11:50 AM",
       title: "Conference Room B Ready (10 AM)",
-      icon: "🔵"
+      icon: "🔵",
     },
     {
       time: "11:30 AM",
       title: "Room B set for 10 AM meeting, with AV and refreshments.",
-      icon: "🟣"
+      icon: "🟣",
     },
     {
       time: "11:00 AM",
       title: "Room 204 cleaned and prepped for new guests.",
-      icon: "🔵"
+      icon: "🔵",
     },
     {
       time: "10:30 AM",
       title: "Maintenance logged: Toilet issue in Room 109, technician assigned.",
-      icon: "🟣"
-    }
+      icon: "🟣",
+    },
   ];
 
   const bookings = [
@@ -69,7 +75,7 @@ function Dashboard() {
       duration: "3 nights",
       checkIn: "Jun 19, 2023",
       checkOut: "Jun 22, 2023",
-      status: "Checked-in"
+      status: "Checked-in",
     },
     {
       id: "LG-B00114",
@@ -79,7 +85,7 @@ function Dashboard() {
       duration: "2 nights",
       checkIn: "Jun 19, 2023",
       checkOut: "Jun 22, 2023",
-      status: "Checked-in"
+      status: "Checked-in",
     },
     {
       id: "LG-B00115",
@@ -89,11 +95,55 @@ function Dashboard() {
       duration: "5 nights",
       checkIn: "Jun 19, 2023",
       checkOut: "Jun 22, 2023",
-      status: "Pending"
-    }
+      status: "Pending",
+    },
   ];
 
-  const COLORS = ['#4F46E5', '#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE', '#DBEAFE'];
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: "OASIS Dashboard",
+        text: "Check out the latest dashboard stats for OASIS Hotel!",
+        url: window.location.href,
+      }).catch((error) => console.error("Error sharing:", error));
+    } else {
+      setShowShareModal(true);
+    }
+  };
+
+  const handleExport = () => {
+    const csvContent = [
+      ["Booking ID", "Guest Name", "Room", "Duration", "Check In", "Check Out", "Status"],
+      ...bookings.map((booking) => [
+        booking.id,
+        booking.guestName,
+        `Room ${booking.roomNumber}`,
+        booking.duration,
+        booking.checkIn,
+        booking.checkOut,
+        booking.status,
+      ]),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "dashboard_bookings.csv";
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleCustomWidgets = () => {
+    setShowWidgetModal(true);
+  };
+
+  const handleAddTask = (newTask) => {
+    setTasks([...tasks, newTask]);
+    console.log("Added new task:", newTask);
+  };
 
   return (
     <div className="p-6">
@@ -103,206 +153,135 @@ function Dashboard() {
           <p className="text-gray-600">Great service leaves a lasting impression.</p>
         </div>
         <div className="flex gap-4">
-          <button className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Share</button>
-          <button className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Export</button>
-          <button className="px-4 py-2 bg-blue-500 text-white rounded">Custom Widgets</button>
+          <button
+            onClick={handleShare}
+            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+          >
+            Share
+          </button>
+          <button
+            onClick={handleExport}
+            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+          >
+            Export
+          </button>
+          <button
+            onClick={handleCustomWidgets}
+            className="px-4 py-2 bg-blue-500 text-white rounded"
+          >
+            Custom Widgets
+          </button>
         </div>
       </div>
 
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h2 className="text-lg font-semibold mb-4">Share Dashboard</h2>
+            <p className="mb-4">Copy the link or send via email:</p>
+            <input
+              type="text"
+              value={window.location.href}
+              readOnly
+              className="w-full p-2 border rounded mb-4"
+            />
+            <div className="flex gap-4">
+              <button
+                onClick={() => navigator.clipboard.writeText(window.location.href)}
+                className="px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                Copy Link
+              </button>
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="px-4 py-2 border rounded"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showWidgetModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h2 className="text-lg font-semibold mb-4">Customize Widgets</h2>
+            <p className="mb-4">Select widgets to display:</p>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" defaultChecked />
+                Booking Pie Chart
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" defaultChecked />
+                Room Availability
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" defaultChecked />
+                Tasks List
+              </label>
+            </div>
+            <div className="flex gap-4 mt-4">
+              <button
+                onClick={() => console.log("Save widget settings")}
+                className="px-4 py-2 bg-blue-500 text-white rounded"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setShowWidgetModal(false)}
+                className="px-4 py-2 border rounded"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-5 gap-4 mb-8">
-        <div className="bg-blue-500 text-white p-4 rounded-lg">
-          <div className="mb-4">New Bookings</div>
-          <div className="text-4xl font-bold">840</div>
-          <div className="text-sm mt-2 text-blue-100">+4.75% from last week</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="flex items-center justify-between mb-4">
-            <span>Check-In</span>
-            <span className="text-green-500">+1</span>
-          </div>
-          <div className="text-4xl font-bold">231</div>
-          <div className="text-sm text-gray-500 mt-2">from last week</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="flex items-center justify-between mb-4">
-            <span>Check-Out</span>
-            <span className="text-red-500">-1.00%</span>
-          </div>
-          <div className="text-4xl font-bold">124</div>
-          <div className="text-sm text-gray-500 mt-2">from last week</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="flex items-center justify-between mb-4">
-            <span>Room Available</span>
-            <span className="text-green-500">+2.97</span>
-          </div>
-          <div className="text-4xl font-bold">32</div>
-          <div className="text-sm text-gray-500 mt-2">from last week</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="flex items-center justify-between mb-4">
-            <span>Total Revenue</span>
-            <span className="text-green-500">+5.70%</span>
-          </div>
-          <div className="text-4xl font-bold">$123,980</div>
-          <div className="text-sm text-gray-500 mt-2">from last week</div>
-        </div>
+        <StatisticsCard
+          title="New Bookings"
+          value="840"
+          change="+4.75% from last week"
+          isPrimary={true}
+        />
+        <StatisticsCard
+          title="Check-In"
+          value="231"
+          change="+1 from last week"
+          isPrimary={false}
+        />
+        <StatisticsCard
+          title="Check-Out"
+          value="124"
+          change="-1.00% from last week"
+          isPrimary={false}
+        />
+        <StatisticsCard
+          title="Room Available"
+          value="32"
+          change="+2.97 from last week"
+          isPrimary={false}
+        />
+        <StatisticsCard
+          title="Total Revenue"
+          value="$123,980"
+          change="+5.70% from last week"
+          isPrimary={false}
+        />
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold">Booking by Platform</h3>
-            <button className="text-gray-400">...</button>
-          </div>
-          <PieChart width={300} height={200}>
-            <Pie
-              data={bookingData.platforms}
-              cx={150}
-              cy={100}
-              innerRadius={60}
-              outerRadius={80}
-              paddingAngle={5}
-              dataKey="value"
-            >
-              {bookingData.platforms.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-          </PieChart>
-          <div className="mt-4 space-y-2">
-            {bookingData.platforms.map((platform, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: COLORS[index] }}></div>
-                  <span>{platform.name}</span>
-                </div>
-                <span>{platform.value}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold">Room Availability</h3>
-            <button className="text-gray-400">...</button>
-          </div>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <div className="text-4xl font-bold">286</div>
-                <div className="text-gray-500">Occupied</div>
-              </div>
-              <div>
-                <div className="text-4xl font-bold">87</div>
-                <div className="text-gray-500">Reserved</div>
-              </div>
-              <div>
-                <div className="text-4xl font-bold">32</div>
-                <div className="text-gray-500">Available</div>
-              </div>
-              <div>
-                <div className="text-4xl font-bold">13</div>
-                <div className="text-gray-500">Not Ready</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold">Tasks</h3>
-            <button className="text-blue-500">+</button>
-          </div>
-          <div className="space-y-4">
-            {tasks.map((task, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-gray-500">{task.date}</div>
-                  <div>{task.title}</div>
-                </div>
-                <div className={`px-3 py-1 rounded-full text-sm ${
-                  task.status === 'Completed' ? 'bg-purple-100 text-purple-800' :
-                  task.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {task.status}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <BookingPieChart platforms={bookingData.platforms} />
+        <RoomAvailability occupied={286} reserved={87} available={32} notReady={13} />
+        <TasksList tasks={tasks} onAddTask={handleAddTask} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold">Booking List</h3>
-            <div className="flex gap-4">
-              <input
-                type="text"
-                placeholder="Search guest, status, etc"
-                className="px-4 py-2 border rounded-lg"
-              />
-              <button className="px-4 py-2 border rounded-lg">All Status ▼</button>
-            </div>
-          </div>
-          <table className="w-full">
-            <thead>
-              <tr className="text-left text-gray-500">
-                <th className="pb-4">Booking ID</th>
-                <th className="pb-4">Guest Name</th>
-                <th className="pb-4">Room</th>
-                <th className="pb-4">Duration</th>
-                <th className="pb-4">Check In/Out</th>
-                <th className="pb-4">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bookings.map((booking) => (
-                <tr key={booking.id} className="border-t">
-                  <td className="py-4">{booking.id}</td>
-                  <td className="py-4">{booking.guestName}</td>
-                  <td className="py-4">Room {booking.roomNumber}</td>
-                  <td className="py-4">{booking.duration}</td>
-                  <td className="py-4">{booking.checkIn}</td>
-                  <td className="py-4">
-                    <span className={`px-3 py-1 rounded-full text-sm ${
-                      booking.status === 'Checked-in' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {booking.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h3 className="text-lg font-semibold">Recent Activities</h3>
-              <div className="text-sm text-gray-500">1,242</div>
-            </div>
-            <button className="px-4 py-2 border rounded-lg">Popular ▼</button>
-          </div>
-          <div className="space-y-6">
-            {recentActivities.map((activity, index) => (
-              <div key={index} className="flex items-start gap-4">
-                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">
-                  {activity.icon}
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm text-gray-500">{activity.time}</div>
-                  <div>{activity.title}</div>
-                </div>
-                <button className="text-gray-400">...</button>
-              </div>
-            ))}
-          </div>
-        </div>
+        <BookingList bookings={bookings} />
+        <RecentActivities activities={recentActivities} />
       </div>
     </div>
   );
