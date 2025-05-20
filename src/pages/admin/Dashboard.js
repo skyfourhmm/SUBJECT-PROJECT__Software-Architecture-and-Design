@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import StatisticsCard from "../../components/admin/StatisticsCard";
 import BookingPieChart from "../../components/admin/BookingPieChart";
 import RoomAvailability from "../../components/admin/RoomAvailability";
 import TasksList from "../../components/admin/TasksList";
 import BookingList from "../../components/admin/BookingList";
 import RecentActivities from "../../components/admin/RecentActivities";
+import { logout } from "../../api/user";
 
 function Dashboard() {
   const [showShareModal, setShowShareModal] = useState(false);
@@ -61,7 +62,8 @@ function Dashboard() {
     },
     {
       time: "10:30 AM",
-      title: "Maintenance logged: Toilet issue in Room 109, technician assigned.",
+      title:
+        "Maintenance logged: Toilet issue in Room 109, technician assigned.",
       icon: "🟣",
     },
   ];
@@ -101,11 +103,13 @@ function Dashboard() {
 
   const handleShare = () => {
     if (navigator.share) {
-      navigator.share({
-        title: "OASIS Dashboard",
-        text: "Check out the latest dashboard stats for OASIS Hotel!",
-        url: window.location.href,
-      }).catch((error) => console.error("Error sharing:", error));
+      navigator
+        .share({
+          title: "OASIS Dashboard",
+          text: "Check out the latest dashboard stats for OASIS Hotel!",
+          url: window.location.href,
+        })
+        .catch((error) => console.error("Error sharing:", error));
     } else {
       setShowShareModal(true);
     }
@@ -113,7 +117,15 @@ function Dashboard() {
 
   const handleExport = () => {
     const csvContent = [
-      ["Booking ID", "Guest Name", "Room", "Duration", "Check In", "Check Out", "Status"],
+      [
+        "Booking ID",
+        "Guest Name",
+        "Room",
+        "Duration",
+        "Check In",
+        "Check Out",
+        "Status",
+      ],
       ...bookings.map((booking) => [
         booking.id,
         booking.guestName,
@@ -145,12 +157,45 @@ function Dashboard() {
     console.log("Added new task:", newTask);
   };
 
+  // Avatar click handler
+
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Đóng dropdown khi click ra ngoài
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false); // Ẩn dropdown khi click ngoài
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleAvatarClick = () => {
+    setIsOpen(!isOpen);
+  };
+
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      await logout();
+
+      window.location.href = "/login"; // Redirect to login page
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold">Hey Prottoy,</h1>
-          <p className="text-gray-600">Great service leaves a lasting impression.</p>
+          <p className="text-gray-600">
+            Great service leaves a lasting impression.
+          </p>
         </div>
         <div className="flex gap-4">
           <button
@@ -171,8 +216,34 @@ function Dashboard() {
           >
             Custom Widgets
           </button>
+          <div className="flex items-center space-x-4">
+            <img
+              src="https://i.pravatar.cc/40" // URL hình avatar mẫu, bạn có thể thay bằng hình thật
+              alt="Avatar"
+              className="w-10 h-10 rounded-full object-cover cursor-pointer"
+              onClick={handleAvatarClick}
+            />
+          </div>
         </div>
       </div>
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-50">
+          <ul>
+            <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+              Profile
+            </li>
+            <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+              Settings
+            </li>
+            <li
+              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+              onClick={handleLogout}
+            >
+              Logout
+            </li>
+          </ul>
+        </div>
+      )}
 
       {showShareModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -187,7 +258,9 @@ function Dashboard() {
             />
             <div className="flex gap-4">
               <button
-                onClick={() => navigator.clipboard.writeText(window.location.href)}
+                onClick={() =>
+                  navigator.clipboard.writeText(window.location.href)
+                }
                 className="px-4 py-2 bg-blue-500 text-white rounded"
               >
                 Copy Link
@@ -275,7 +348,12 @@ function Dashboard() {
 
       <div className="grid grid-cols-3 gap-4 mb-8">
         <BookingPieChart platforms={bookingData.platforms} />
-        <RoomAvailability occupied={286} reserved={87} available={32} notReady={13} />
+        <RoomAvailability
+          occupied={286}
+          reserved={87}
+          available={32}
+          notReady={13}
+        />
         <TasksList tasks={tasks} onAddTask={handleAddTask} />
       </div>
 

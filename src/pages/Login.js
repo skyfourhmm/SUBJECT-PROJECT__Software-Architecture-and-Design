@@ -1,21 +1,28 @@
 import React, { useState } from "react";
-import { user } from "../assets/fakedata";
 import { useNavigate } from "react-router-dom";
+import { login } from "../api/user";
 
 function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("customer@gmail.com");
+  const [userName, setUserName] = useState("nhanvien01");
   const [password, setPassword] = useState("123456");
 
-  const handleLogin = () => {
-    const currentUser = user.find(
-      (user) => user.email === email && user.password === password
-    );
+  const handleLogin = async (e) => {
+    e.preventDefault();
 
-    if (currentUser.role === "customer") {
-      navigate("/customer");
-    } else {
-      navigate("/admin");
+    try {
+      const data = await login(userName, password);
+
+      localStorage.setItem("accessToken", data.token);
+      localStorage.setItem("userInfo", JSON.stringify(data.thongTinNguoiDung));
+
+      if (data.vaiTro !== "NHAN_VIEN") {
+        navigate("/customer");
+      } else {
+        navigate("/admin");
+      }
+    } catch (err) {
+      console.error("Login failed:", err);
     }
   };
 
@@ -27,13 +34,13 @@ function Login() {
         <p className="text-gray-600 mb-8">Sign in to your account</p>
 
         <form>
-          <label className="block mb-2 text-gray-700">Your Email</label>
+          <label className="block mb-2 text-gray-700">User Name</label>
           <input
-            type="email"
-            placeholder="albert45@mail.com"
+            type="text"
+            placeholder="plearse enter your username"
             className="w-full px-4 py-2 border rounded-full mb-4"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
           />
 
           <label className="block mb-2 text-gray-700">Password</label>
@@ -57,7 +64,7 @@ function Login() {
 
           <button
             className="w-full bg-blue-600 text-white py-2 rounded-full hover:bg-blue-700"
-            onClick={() => handleLogin()}
+            onClick={handleLogin}
           >
             Log In
           </button>
