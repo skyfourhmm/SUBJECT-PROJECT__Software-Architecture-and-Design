@@ -1,5 +1,6 @@
 package com.hotelmanagementsystem.indentity_service.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,19 +15,19 @@ import java.util.UUID;
 @Table(name = "TaiKhoan")
 public class TaiKhoan {
     @Id
-    @Column(name = "id", updatable = false, nullable = false)
-    private String id = UUID.randomUUID().toString();
+    @Column(name = "maTaiKhoan", updatable = false, nullable = false)
+    private String maTaiKhoan = UUID.randomUUID().toString();
 
-    @Column(name = "tenDangNhap", unique = true, nullable = false)
     private String tenDangNhap;
-
-    @Column(name = "matKhau", nullable = false)
     private String matKhau;
+    private String trangThai;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    private Role role; // OWNER, EMPLOYEE, CUSTOMER
+    @OneToOne(mappedBy = "taiKhoan", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private NhanVien nhanVien;
 
-    @Column(name = "trangThai", nullable = false)
-    private boolean trangThai;
+    @OneToOne(mappedBy = "taiKhoan", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private KhachHang khachHang;
+
 }

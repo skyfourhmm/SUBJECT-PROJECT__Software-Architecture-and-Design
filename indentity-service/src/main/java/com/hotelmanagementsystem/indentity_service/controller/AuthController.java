@@ -2,55 +2,57 @@ package com.hotelmanagementsystem.indentity_service.controller;
 
 import com.hotelmanagementsystem.indentity_service.dto.*;
 import com.hotelmanagementsystem.indentity_service.service.AuthService;
+import com.hotelmanagementsystem.indentity_service.service.TokenBlacklistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 public class AuthController {
+
     @Autowired
     private AuthService authService;
 
-    @PostMapping("/register")
-    public ResponseEntity<ResponseDTO> register(@RequestBody RegisterRequest registerRequest) {
-        ResponseDTO response = authService.registerUser(registerRequest);
-        if ("ERROR".equals(response.getStatus())) {
-            return ResponseEntity.badRequest().body(response);  // Trả về mã 400 với thông báo lỗi
+    @Autowired
+    private TokenBlacklistService tokenBlacklistService;
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
+        // Lấy token từ header
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body("Thiếu token");
         }
-        return ResponseEntity.ok(response);
+
+        String token = authHeader.substring(7);
+
+        // Blacklist token
+        tokenBlacklistService.blacklistToken(token);
+
+        return ResponseEntity.ok("Đăng xuất thành công");
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        try {
+            String result = authService.register(request);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ResponseDTO>  login(@RequestBody LoginRequest loginRequest) {
-        ResponseDTO response = authService.loginUser(loginRequest);
-        if ("ERROR".equals(response.getStatus())) {
-            return ResponseEntity.badRequest().body(response);  // Trả về mã 400 với thông báo lỗi
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        try {
+            LoginResponse response = authService.login(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Sai tài khoản hoặc mật khẩu");
         }
-        return ResponseEntity.ok(response);
     }
-
-    @PostMapping("/logout")
-    public ResponseEntity<ResponseDTO> logout(@RequestHeader("Authorization") String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.badRequest().body(new ResponseDTO("Token không hợp lệ.", "ERROR"));
-        }
-
-        String token = authHeader.substring(7); // Bỏ "Bearer "
-        ResponseDTO response = authService.logoutUser(token);
-        return ResponseEntity.ok(response);
-    }
-
-    @PutMapping("/change-password")
-    public ResponseEntity<ResponseDTO> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest,
-                                                      @RequestHeader("Authorization") String authHeader) {
-
-        String token = authHeader.substring(7);  // Bỏ "Bearer " ra
-        ResponseDTO response = authService.changePassword(changePasswordRequest, token);
-        return ResponseEntity.ok(response);
-    }
-
 }

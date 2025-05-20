@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -13,16 +14,14 @@ import java.util.UUID;
 @AllArgsConstructor
 @Table(name = "LoaiNhanVien")
 public class LoaiNhanVien {
+
     @Id
     @Column(name = "maLoaiNhanVien", updatable = false, nullable = false)
     private String maLoaiNhanVien = UUID.randomUUID().toString();
 
     private String tenLoaiNhanVien;
-    private boolean trangThai;
 
-    // Thêm trường Role
-    @Enumerated(EnumType.STRING)
-    private Role role;
-
-    // Getters & Setters
+    // Quan hệ 1-nhiều với NhanVien
+    @OneToMany(mappedBy = "loaiNhanVien", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<NhanVien> danhSachNhanVien;
 }
