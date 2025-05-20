@@ -1,4 +1,4 @@
 package com.hotelmanagementsystem.booking_service.entity;
 
-public enum BookingStatus {
+public enum BookingType {
 }
