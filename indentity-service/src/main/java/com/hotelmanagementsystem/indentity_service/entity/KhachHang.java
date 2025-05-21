@@ -24,9 +24,12 @@ public class KhachHang {
     private String gioiTinh;
     private LocalDate ngaySinh;
     private String diaChi;
+    @Column(unique = true)
     private String soDienThoai;
     private int diemThuong;
     private String ghiChu;
+    @Column(unique = true)
+    private String CCCD;
 
     // Quan hệ 1-1 với TaiKhoan (KhachHang là chủ sở hữu)
     @OneToOne

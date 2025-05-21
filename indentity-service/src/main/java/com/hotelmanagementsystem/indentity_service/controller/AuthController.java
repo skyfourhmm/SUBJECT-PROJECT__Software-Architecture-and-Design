@@ -38,13 +38,14 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-        try {
-            String result = authService.register(request);
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    try {
+        ApiResponse result = authService.register(request);
+        return ResponseEntity.ok(result);
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body(new ApiResponse(e.getMessage()));
     }
+    }
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {

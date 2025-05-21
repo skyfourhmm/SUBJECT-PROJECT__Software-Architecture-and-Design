@@ -15,4 +15,9 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, String> {
 
     // Optional: nếu cần tìm thêm
     Optional<KhachHang> findBySoDienThoai(String soDienThoai);
+
+    // KhachHangRepository.java
+    boolean existsBySoDienThoai(String soDienThoai);
+    boolean existsByCCCD(String CCCD);
+
 }
