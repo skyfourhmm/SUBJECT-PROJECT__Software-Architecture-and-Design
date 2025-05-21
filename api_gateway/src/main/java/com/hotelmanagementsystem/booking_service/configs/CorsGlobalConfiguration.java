@@ -2,6 +2,8 @@ package com.hotelmanagementsystem.booking_service.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -24,4 +26,9 @@ public class CorsGlobalConfiguration {
 
         return new CorsWebFilter(source);
     }
+
+
+   
+
+    
 }

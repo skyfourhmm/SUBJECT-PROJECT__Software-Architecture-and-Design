@@ -30,11 +30,12 @@ public class LoaiPhongController {
     // API thêm loại phòng, nhận vào LoaiPhongRequest
     @PostMapping("/them")
     public ResponseEntity<LoaiPhong> themLoaiPhong(@RequestBody LoaiPhongRequest request, HttpServletRequest httpRequest) {
-        String userId = httpRequest.getHeader("X-User-Id");
-
-        System.out.println("User ID: " + userId);
+        
+        String userName = httpRequest.getHeader("X-User-Id");
+        System.out.println("User ID: " + userName);
         
         // LoaiPhong loaiPhongMoi = loaiPhongService.themLoaiPhong(request);
+        System.out.println("Request body: " + request);
         return ResponseEntity.ok(null);
     }
 
