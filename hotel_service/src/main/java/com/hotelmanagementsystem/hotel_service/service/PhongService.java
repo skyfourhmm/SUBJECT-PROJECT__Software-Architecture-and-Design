@@ -48,12 +48,8 @@ public class PhongService {
         return phongRepository.findByLoaiPhong_MaLoaiPhong(maLoaiPhong);
     }
 
-    public Phong layPhongTheoId(String id) {
-        try {
-            java.util.UUID uuid = java.util.UUID.fromString(id);
-            return phongRepository.findById(uuid).orElse(null);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    public Phong layPhongTheoMaPhong(String maPhong) {
+        return phongRepository.findById(maPhong).orElse(null);
     }
+
 }

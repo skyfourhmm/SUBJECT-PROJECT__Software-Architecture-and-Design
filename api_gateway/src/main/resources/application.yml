@@ -18,5 +18,9 @@ spring:
           uri: http://localhost:8083
           predicates:
             - Path=/hotel/**
+        - id: payment_service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/payment/**
 jwt:
   secret: cXWgolhZuRwCyI0mQGb1UtrtIrMLbpfL7TxvjghQnPi9M7NFU6o8Mp0Vk4s67s4T12wbuO84LbEsfuymJyzMeArr

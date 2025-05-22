@@ -45,4 +45,6 @@ public class LoaiPhongController {
         List<LoaiPhong> danhSach = loaiPhongService.getAllLoaiPhong();
         return ResponseEntity.ok(danhSach);
     }
+
+    
 }

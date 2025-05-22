@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.hotelmanagementsystem.hotel_service.entity.Phong;
 
-public interface PhongRepository extends JpaRepository<Phong, UUID> {
+public interface PhongRepository extends JpaRepository<Phong, String> {
     // không cần thêm method nào, JpaRepository đã hỗ trợ findAll()
     List<Phong> findByTrangThaiPhong_TenTrangThai(String tinhTrangPhong);
 

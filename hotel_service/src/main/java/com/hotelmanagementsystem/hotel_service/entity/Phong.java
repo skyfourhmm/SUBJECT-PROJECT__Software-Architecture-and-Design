@@ -29,7 +29,6 @@ public class Phong {
 
     @ManyToOne
     @JoinColumn(name = "ma_loai_phong", referencedColumnName = "ma_loai_phong")
-    @JsonIgnore // (nếu bạn không cần trả loại phòng kèm theo phòng)
     private LoaiPhong loaiPhong;
 
     @ManyToOne

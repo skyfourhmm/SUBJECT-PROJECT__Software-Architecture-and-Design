@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hotelmanagementsystem.hotel_service.dto.PhongRequest;
@@ -35,13 +36,14 @@ public class PhongController {
         return ResponseEntity.ok(danhSachPhong);
     }
 
-    @GetMapping("/by-id/{id}")
-    public ResponseEntity<Phong> layPhongTheoId(@PathVariable String id) {
-        Phong phong = phongService.layPhongTheoId(id);
+     @GetMapping("/by-id")
+    public ResponseEntity<Phong> layPhongTheoId(@RequestParam String id) {
+        Phong phong = phongService.layPhongTheoMaPhong(id);
         if (phong != null) {
             return ResponseEntity.ok(phong);
         } else {
             return ResponseEntity.notFound().build();
         }
     }
+
 }

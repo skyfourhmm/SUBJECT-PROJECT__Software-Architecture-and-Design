@@ -8,10 +8,12 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hotelmanagementsystem.booking_service.dto.PhieuDatPhongRequest;
 import com.hotelmanagementsystem.booking_service.entity.PhieuDatPhong;
 import com.hotelmanagementsystem.booking_service.service.PhieuDatPhongService;
 
@@ -53,5 +55,13 @@ public class PhieuDatPhongController {
     public ResponseEntity<Void> deleteById(@PathVariable("id") String id) {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{maPhieuDat}")
+    public ResponseEntity<?> updatePhieuDatPhong(@PathVariable String maPhieuDat,
+                                                 @RequestBody PhieuDatPhongRequest request) {
+        return service.update(maPhieuDat, request)
+                .map(updated -> ResponseEntity.ok(updated))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
