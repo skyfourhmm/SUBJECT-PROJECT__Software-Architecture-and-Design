@@ -1,37 +1,76 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { useReactToPrint } from "react-to-print";
 import ReservationHeader from "../../components/admin/ReservationHeader";
 import BookingTable from "../../components/admin/BookingTable";
+import {
+  getListTypeRoom,
+  getRoomById,
+  getRoomsByTypeId,
+} from "../../api/rooms";
+import {
+  getCustomerById,
+  getCustomerByPhone,
+  getStaffById,
+} from "../../api/user";
+import {
+  getBooking,
+  getBookingById,
+  getListBooking,
+  updateBooking,
+} from "../../api/booking";
+import { createPayment, updatePayment } from "../../api/payment";
 
 function Reservations() {
-  const [bookings, setBookings] = useState([
-    {
-      id: "LG-B00113",
-      guestName: "John Miller",
-      roomType: "Deluxe 101",
-      request: "Late Check-Out",
-      nights: "3 nights",
-      date: "July 10 - 13, 2023",
-      status: "Confirmed",
-    },
-    {
-      id: "LG-B00114",
-      guestName: "Emily Davis",
-      roomType: "Standard 202",
-      request: "None",
-      nights: "2 nights",
-      date: "July 9 - 11, 2023",
-      status: "Confirmed",
-    },
-    {
-      id: "LG-B00115",
-      guestName: "Liam Thompson",
-      roomType: "Suite 203",
-      request: "Extra Pillows",
-      nights: "5 nights",
-      date: "July 8 - 13, 2023",
-      status: "Pending",
-    },
-  ]);
+  const [bookings, setBookings] = useState([]);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentInfo, setPaymentInfo] = useState(null);
+
+  useEffect(() => {
+    const fetchBookingsWithDetails = async () => {
+      try {
+        const data = await getListBooking();
+
+        const bookingsWithDetails = await Promise.all(
+          data.map(async (booking) => {
+            try {
+              // Lấy thông tin khách hàng
+              const customerInfo = await getCustomerById(booking.maKhachHang);
+
+              // Lấy thông tin phòng
+              const roomInfo = await getRoomById(booking.maPhong);
+
+              // Lấy loại phòng nếu tồn tại trong roomInfo
+              const roomType = roomInfo?.loaiPhong || null;
+
+              return {
+                ...booking,
+                khachHang: customerInfo,
+                phong: roomInfo,
+                loaiPhong: roomType, // Thêm loại phòng
+              };
+            } catch (error) {
+              console.error(
+                `Lỗi lấy thông tin cho booking ${booking.maPhieuDat}`,
+                error
+              );
+              return {
+                ...booking,
+                khachHang: null,
+                phong: null,
+                loaiPhong: null,
+              };
+            }
+          })
+        );
+
+        setBookings(bookingsWithDetails);
+      } catch (error) {
+        console.error("Error fetching bookings:", error);
+      }
+    };
+
+    fetchBookingsWithDetails();
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -50,20 +89,6 @@ function Reservations() {
     status: "Pending",
   });
 
-  const filteredBookings = bookings.filter((booking) => {
-    const searchMatch =
-      booking.guestName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      booking.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      booking.roomType.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const statusMatch =
-      statusFilter === "all" || booking.status.toLowerCase() === statusFilter;
-
-    const dateMatch = !dateRange || booking.date.includes(dateRange);
-
-    return searchMatch && statusMatch && dateMatch;
-  });
-
   const handleAddBooking = () => {
     setNewBooking({
       id: `LG-B${Math.floor(10000 + Math.random() * 90000)}`,
@@ -75,29 +100,6 @@ function Reservations() {
       status: "Pending",
     });
     setShowAddModal(true);
-  };
-
-  const handleSaveNewBooking = () => {
-    if (
-      newBooking.guestName &&
-      newBooking.roomType &&
-      newBooking.nights &&
-      newBooking.date
-    ) {
-      setBookings([...bookings, newBooking]);
-      setShowAddModal(false);
-      setNewBooking({
-        id: "",
-        guestName: "",
-        roomType: "",
-        request: "",
-        nights: "",
-        date: "",
-        status: "Pending",
-      });
-    } else {
-      alert("Please fill in all required fields.");
-    }
   };
 
   const handleView = (booking) => {
@@ -136,21 +138,220 @@ function Reservations() {
     }
   };
 
-  const handleConfirmOrCancel = (booking) => {
-    const action = booking.status === "Pending" ? "confirm" : "cancel";
-    if (window.confirm(`Are you sure you want to ${action} this booking?`)) {
-      setBookings(
-        bookings.map((b) =>
-          b.id === booking.id
-            ? {
-                ...b,
-                status: action === "confirm" ? "Confirmed" : "Cancelled",
-              }
-            : b
-        )
+  const handleConfirmOrCancel = async (booking) => {
+    const checkIn = new Date(booking.checkIn);
+    const checkOut = new Date(booking.checkOut);
+    const timeDiff = checkOut - checkIn;
+    const soNgay = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+    const tinhtien = soNgay * booking.loaiPhong.giaPhongTheoDem;
+    const now = new Date();
+    const thoiGianThanhToan = now.toISOString().slice(0, 19); // YYYY-MM-DDTHH:MM:SS
+    const paymentData = {
+      trangThai: "Đã Thanh Toán",
+      thoiGianThanhToan: thoiGianThanhToan,
+      giaTien: tinhtien,
+    };
+
+    // cập nhật lại trạng thái đặt phòng
+    const maPhieuDat = {
+      maKhachHang: booking.khachHang.maKhachHang,
+      maPhong: booking.maPhong,
+      maHoaDon: booking.maHoaDon,
+      checkIn: booking.checkIn,
+      checkOut: booking.checkOut,
+      trangThai: "Đã Thanh Toán",
+      moTa: "Yeu cau phong view bien",
+    };
+
+    try {
+      const data = await updateBooking(booking.maPhieuDat, maPhieuDat);
+
+      console.log("Cập nhật đặt phòng thành công:", data);
+    } catch (error) {
+      console.error("Error confirming or canceling booking:", error);
+    }
+
+    try {
+      const phieuDat = await getBookingById(booking.maPhieuDat);
+      if (!phieuDat) return;
+      const updatedPayment = await updatePayment(
+        phieuDat.maHoaDon,
+        paymentData
       );
+      try {
+        // Lấy thông tin khách hàng và nhân viên từ updatedPayment
+        const [customer, staff] = await Promise.all([
+          getCustomerById(updatedPayment.maKhachHang),
+          getStaffById(updatedPayment.maNhanVien),
+        ]);
+        // Gộp tất cả vào 1 object
+        const fullPaymentInfo = {
+          ...updatedPayment,
+          khachHang: customer,
+          nhanVien: staff,
+          booking: booking,
+        };
+        // ✅ Chỉ set 1 lần, sau khi đã có đủ dữ liệu
+        setPaymentInfo(fullPaymentInfo);
+        setShowPaymentModal(true);
+      } catch (error) {
+        console.error(
+          "❌ Lỗi khi lấy thông tin khách hàng / nhân viên:",
+          error
+        );
+      }
+    } catch (error) {
+      console.error("❌ Lỗi khi xác nhận hoặc hủy đặt phòng:", error);
     }
   };
+
+  // model
+
+  const [phone, setPhone] = useState("");
+  const [roomTypes, setRoomTypes] = useState([]);
+  const [selectedRoomType, setSelectedRoomType] = useState("");
+  const [rooms, setRooms] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState("");
+  const [customerInfo, setCustomerInfo] = useState(null);
+  const [checkOut, setCheckOut] = useState("");
+
+  useEffect(() => {
+    const fetchRoomTypes = async () => {
+      const types = await getListTypeRoom();
+      setRoomTypes(types);
+    };
+    fetchRoomTypes();
+  }, []);
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      if (selectedRoomType) {
+        const data = await getRoomsByTypeId(selectedRoomType);
+        setRooms(data);
+        setSelectedRoom(""); // reset room on type change
+      } else {
+        setRooms([]);
+        setSelectedRoom("");
+      }
+    };
+    fetchRooms();
+  }, [selectedRoomType]);
+
+  // Debounce timer
+  useEffect(() => {
+    if (phone.length < 9) {
+      setCustomerInfo(null);
+      return;
+    }
+
+    const handler = setTimeout(async () => {
+      try {
+        const customer = await getCustomerByPhone(phone);
+        setCustomerInfo(customer);
+      } catch (error) {
+        setCustomerInfo(null);
+      }
+    }, 300); // đợi 300ms sau khi ngừng gõ mới gọi API
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [phone]);
+
+  const handleSave = async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const booking = {
+      maKhachHang: customerInfo?.maKhachHang,
+      maPhong: selectedRoom,
+      maHoaDon: null, // ban đầu chưa có hóa đơn
+      checkIn: today,
+      checkOut: checkOut,
+      tienCoc: null,
+      trangThai: "Đã đặt",
+      moTa: "null",
+    };
+
+    try {
+      // 1. Tạo phiếu đặt phòng
+      const data = await getBooking(booking);
+
+      if (data && data.maPhieuDat) {
+        // 2. Lấy nhân viên từ localStorage
+        const nhanvien = JSON.parse(localStorage.getItem("userInfo"));
+
+        // 3. Gửi request tạo hóa đơn
+        const paymentData = await createPayment({
+          trangThai: "ChuaThanhToan",
+          thoiGianThanhToan: null,
+          maPhieuDat: data.maPhieuDat,
+          giaTien: 0,
+          maKhachHang: data.maKhachHang,
+          maNhanVien: nhanvien?.maNhanVien,
+        });
+
+        // 4. Cập nhật lại phiếu đặt với mã hóa đơn mới
+        if (paymentData?.maHoaDon) {
+          await updateBooking(data.maPhieuDat, {
+            ...data,
+            maHoaDon: paymentData.maHoaDon,
+          });
+        }
+      }
+
+      // 5. Reset form
+      setShowAddModal(false);
+      setPhone("");
+      setSelectedRoomType("");
+      setRooms([]);
+      setSelectedRoom("");
+      setCheckOut("");
+    } catch (error) {
+      console.error("Error saving booking:", error);
+    }
+  };
+
+  const handleCancel = () => {
+    setShowAddModal(false);
+    setPhone("");
+    setSelectedRoomType("");
+    setRooms([]);
+    setSelectedRoom("");
+    setCheckOut("");
+  };
+
+  const formatDateTime = (isoString) => {
+    const date = new Date(isoString);
+    return date.toLocaleString("vi-VN", {
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  // In thông tin thanh toán
+  const componentRef = useRef();
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+  });
+
+  // handle search
+  const [bookingSearch, setBookingSearch] = useState(bookings);
+  useEffect(() => {
+    if (!searchQuery) {
+      setBookingSearch(bookings);
+      return;
+    }
+    const foundBooking = bookings.find(
+      (b) => b.khachHang?.soDienThoai === searchQuery
+    );
+    setBookingSearch(foundBooking ? [foundBooking] : []);
+
+    console.log("Found booking:", bookings[0].khachHang?.soDienThoai);
+  }, [searchQuery, bookings]);
 
   return (
     <div className="p-6">
@@ -164,87 +365,103 @@ function Reservations() {
         onAddBooking={handleAddBooking}
       />
       <BookingTable
-        bookings={filteredBookings}
+        bookings={bookingSearch}
         onView={handleView}
         onEdit={handleEdit}
         onConfirmOrCancel={handleConfirmOrCancel}
       />
 
-      {/* Modal for Add Booking */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-lg font-semibold mb-4">Add New Booking</h2>
-            <div className="space-y-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-[500px] space-y-4">
+            <h2 className="text-xl font-semibold mb-2">
+              Chọn phòng cho khách hàng
+            </h2>
+
+            {/* Số điện thoại */}
+            <div>
+              <label className="block mb-1">Số điện thoại khách hàng</label>
               <input
                 type="text"
-                placeholder="Guest Name"
-                value={newBooking.guestName}
-                onChange={(e) =>
-                  setNewBooking({ ...newBooking, guestName: e.target.value })
-                }
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border rounded-md"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
               />
-              <input
-                type="text"
-                placeholder="Room Type"
-                value={newBooking.roomType}
-                onChange={(e) =>
-                  setNewBooking({ ...newBooking, roomType: e.target.value })
-                }
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="text"
-                placeholder="Request (optional)"
-                value={newBooking.request}
-                onChange={(e) =>
-                  setNewBooking({ ...newBooking, request: e.target.value })
-                }
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="text"
-                placeholder="Nights (e.g., 3 nights)"
-                value={newBooking.nights}
-                onChange={(e) =>
-                  setNewBooking({ ...newBooking, nights: e.target.value })
-                }
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="text"
-                placeholder="Date (e.g., July 10 - 13, 2023)"
-                value={newBooking.date}
-                onChange={(e) =>
-                  setNewBooking({ ...newBooking, date: e.target.value })
-                }
-                className="w-full p-2 border rounded"
-              />
+              {/* Hiển thị tên + CCCD khách khi có */}
+              {customerInfo && (
+                <div className="mt-1 text-sm text-gray-700">
+                  <div>Tên: {customerInfo.hoTen}</div>
+                  <div>CCCD: {customerInfo.cccd}</div>
+                </div>
+              )}
+            </div>
+
+            {/* Loại phòng */}
+            <div>
+              <label className="block mb-1">Loại phòng</label>
               <select
-                value={newBooking.status}
-                onChange={(e) =>
-                  setNewBooking({ ...newBooking, status: e.target.value })
-                }
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border rounded-md"
+                value={selectedRoomType}
+                onChange={(e) => setSelectedRoomType(e.target.value)}
               >
-                <option value="Pending">Pending</option>
-                <option value="Confirmed">Confirmed</option>
-                <option value="Cancelled">Cancelled</option>
+                <option value="">-- Chọn loại phòng --</option>
+                {roomTypes.map((type) => (
+                  <option key={type.maLoaiPhong} value={type.maLoaiPhong}>
+                    {type.tenLoaiPhong}
+                  </option>
+                ))}
               </select>
             </div>
-            <div className="flex gap-4 mt-4">
-              <button
-                onClick={handleSaveNewBooking}
-                className="px-4 py-2 bg-blue-500 text-white rounded"
+
+            {/* Danh sách phòng */}
+            <div>
+              <label className="block mb-1">Chọn phòng</label>
+              <select
+                className="w-full p-2 border rounded-md"
+                value={selectedRoom}
+                onChange={(e) => setSelectedRoom(e.target.value)}
+                disabled={!rooms.length}
               >
-                Save
-              </button>
+                <option value="">-- Chọn phòng --</option>
+                {rooms.map((room) => (
+                  <option key={room.maPhong} value={room.maPhong}>
+                    {room.tenPhong} ({room.tinhTrangPhong})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Ngày Check-Out */}
+            <div>
+              <label className="block mb-1">Ngày Check-Out</label>
+              <input
+                type="date"
+                className="w-full p-2 border rounded-md"
+                value={checkOut}
+                onChange={(e) => setCheckOut(e.target.value)}
+              />
+            </div>
+
+            {/* Buttons */}
+            <div className="flex justify-end space-x-3 mt-4">
               <button
-                onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 border rounded"
+                onClick={handleCancel}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
               >
                 Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                disabled={
+                  !phone ||
+                  !customerInfo ||
+                  !selectedRoomType ||
+                  !selectedRoom ||
+                  !checkOut
+                }
+              >
+                Save
               </button>
             </div>
           </div>
@@ -257,13 +474,27 @@ function Reservations() {
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h2 className="text-lg font-semibold mb-4">Booking Details</h2>
             <div className="space-y-2">
-              <p><strong>ID:</strong> {selectedBooking.id}</p>
-              <p><strong>Guest Name:</strong> {selectedBooking.guestName}</p>
-              <p><strong>Room Type:</strong> {selectedBooking.roomType}</p>
-              <p><strong>Request:</strong> {selectedBooking.request || "None"}</p>
-              <p><strong>Duration:</strong> {selectedBooking.nights}</p>
-              <p><strong>Check-In/Out:</strong> {selectedBooking.date}</p>
-              <p><strong>Status:</strong> {selectedBooking.status}</p>
+              <p>
+                <strong>ID:</strong> {selectedBooking.id}
+              </p>
+              <p>
+                <strong>Guest Name:</strong> {selectedBooking.guestName}
+              </p>
+              <p>
+                <strong>Room Type:</strong> {selectedBooking.roomType}
+              </p>
+              <p>
+                <strong>Request:</strong> {selectedBooking.request || "None"}
+              </p>
+              <p>
+                <strong>Duration:</strong> {selectedBooking.nights}
+              </p>
+              <p>
+                <strong>Check-In/Out:</strong> {selectedBooking.date}
+              </p>
+              <p>
+                <strong>Status:</strong> {selectedBooking.status}
+              </p>
             </div>
             <div className="flex justify-end mt-4">
               <button
@@ -352,6 +583,94 @@ function Reservations() {
                 className="px-4 py-2 border rounded"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPaymentModal && paymentInfo && (
+        <div
+          ref={componentRef}
+          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+        >
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 relative">
+            {/* Nút đóng */}
+            <button
+              onClick={() => setShowPaymentModal(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl"
+            >
+              ✕
+            </button>
+
+            <h2 className="text-2xl font-bold mb-6 text-center">
+              Thông tin thanh toán
+            </h2>
+
+            <div className="grid grid-cols-2 gap-4 text-base">
+              <p>
+                <span className="font-semibold">Trạng thái:</span>{" "}
+                {paymentInfo.trangThai}
+              </p>
+              <p>
+                <span className="font-semibold">Giá tiền:</span>{" "}
+                {paymentInfo.giaTien.toLocaleString()} VND
+              </p>
+
+              <p>
+                <span className="font-semibold">Thời gian thanh toán:</span>{" "}
+                {formatDateTime(paymentInfo.thoiGianThanhToan)}
+              </p>
+              <p>
+                <span className="font-semibold">Thời gian tạo phiếu:</span>{" "}
+                {formatDateTime(paymentInfo.thoiGianTao)}
+              </p>
+
+              <p>
+                <span className="font-semibold">Khách hàng:</span>{" "}
+                {paymentInfo.khachHang?.hoTen}
+              </p>
+              <p>
+                <span className="font-semibold">Nhân viên thanh toán:</span>{" "}
+                {paymentInfo.nhanVien?.hoTen}
+              </p>
+
+              <p>
+                <span className="font-semibold">Số phòng:</span>{" "}
+                {paymentInfo.booking?.phong?.tenPhong}
+              </p>
+              <p>
+                <span className="font-semibold">Loại phòng:</span>{" "}
+                {paymentInfo?.booking?.phong?.loaiPhong?.tenLoaiPhong}
+              </p>
+
+              <p>
+                <span className="font-semibold">Check-in:</span>{" "}
+                {paymentInfo.booking.checkIn}
+              </p>
+              <p>
+                <span className="font-semibold">Check-out:</span>{" "}
+                {paymentInfo.booking.checkOut}
+              </p>
+
+              <p>
+                <span className="font-semibold">Người tạo phiếu:</span>{" "}
+                {paymentInfo.nhanVien?.hoTen}
+              </p>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={handlePrint}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                In
+              </button>
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                Đóng
               </button>
             </div>
           </div>

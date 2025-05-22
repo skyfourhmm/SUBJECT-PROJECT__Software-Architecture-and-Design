@@ -13,10 +13,7 @@ function BookingTable({ bookings, onView, onEdit, onConfirmOrCancel }) {
               Room
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-              Request
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-              Duration
+              Price
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
               Check-In/Out
@@ -31,28 +28,29 @@ function BookingTable({ bookings, onView, onEdit, onConfirmOrCancel }) {
         </thead>
         <tbody className="divide-y divide-gray-200">
           {bookings.map((booking) => (
-            <tr key={booking.id} className="hover:bg-gray-50">
+            <tr key={booking.maPhieuDat} className="hover:bg-gray-50">
               <td className="px-6 py-4">
                 <div>
-                  <div className="font-medium">{booking.guestName}</div>
-                  <div className="text-sm text-gray-500">{booking.id}</div>
+                  <div className="font-medium">{booking.khachHang.hoTen}</div>
+                  <div className="text-sm text-gray-500">
+                    {booking.maKhachHang}
+                  </div>
                 </div>
               </td>
-              <td className="px-6 py-4">{booking.roomType}</td>
+              <td className="px-6 py-4">{booking.phong.tenPhong}</td>
               <td className="px-6 py-4">{booking.request}</td>
-              <td className="px-6 py-4">{booking.nights}</td>
-              <td className="px-6 py-4">{booking.date}</td>
+              <td className="px-6 py-4">{booking.checkOut}</td>
               <td className="px-6 py-4">
                 <span
                   className={`px-3 py-1 rounded-full text-sm ${
-                    booking.status === "Confirmed"
+                    booking.trangThai === "Đã đặt"
                       ? "bg-green-100 text-green-800"
-                      : booking.status === "Pending"
+                      : booking.trangThai === "Đã Thanh Toán"
                       ? "bg-blue-100 text-blue-800"
                       : "bg-red-100 text-red-800"
                   }`}
                 >
-                  {booking.status}
+                  {booking.trangThai}
                 </span>
               </td>
               <td className="px-6 py-4">
@@ -73,7 +71,7 @@ function BookingTable({ bookings, onView, onEdit, onConfirmOrCancel }) {
                     onClick={() => onConfirmOrCancel(booking)}
                     className="p-1 hover:bg-gray-100 rounded text-red-500"
                   >
-                    {booking.status === "Pending" ? "Confirm" : "Cancel"}
+                    {booking.trangThai === "Đã đặt" && "Thanh Toán"}
                   </button>
                 </div>
               </td>

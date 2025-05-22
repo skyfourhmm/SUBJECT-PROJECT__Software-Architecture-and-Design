@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Routes, Route, Link } from "react-router-dom";
 import Dashboard from "../pages/admin/Dashboard";
@@ -6,6 +5,7 @@ import Reservations from "../pages/admin/Reservations";
 import Rooms from "../pages/admin/Rooms";
 import Message from "../pages/admin/Message";
 import Restaurant from "../pages/admin/Restaurant";
+import CustomerList from "../components/admin/CustomerList";
 
 function AdminLayout() {
   return (
@@ -22,49 +22,73 @@ function AdminLayout() {
         <nav className="p-4">
           <ul className="space-y-2">
             <li>
-              <Link to="/admin" className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded">
+              <Link
+                to="/admin"
+                className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded"
+              >
                 <span className="mr-3">🏠</span>
                 Home
               </Link>
             </li>
             <li>
-              <Link to="/admin/guests" className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded">
+              <Link
+                to="/admin/guests"
+                className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded"
+              >
                 <span className="mr-3">👥</span>
                 Guests
               </Link>
             </li>
             <li>
-              <Link to="/admin/reservations" className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded">
+              <Link
+                to="/admin/reservations"
+                className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded"
+              >
                 <span className="mr-3">📅</span>
                 Reservations
               </Link>
             </li>
             <li>
-              <Link to="/admin/rooms" className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded">
+              <Link
+                to="/admin/rooms"
+                className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded"
+              >
                 <span className="mr-3">🛏️</span>
                 Rooms
               </Link>
             </li>
             <li>
-              <Link to="/admin/restaurant" className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded">
+              <Link
+                to="/admin/restaurant"
+                className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded"
+              >
                 <span className="mr-3">🍽️</span>
                 Restaurant
               </Link>
             </li>
             <li>
-              <Link to="/admin/parking" className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded">
+              <Link
+                to="/admin/parking"
+                className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded"
+              >
                 <span className="mr-3">🅿️</span>
                 Parking
               </Link>
             </li>
             <li>
-              <Link to="/admin/messages" className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded">
+              <Link
+                to="/admin/messages"
+                className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded"
+              >
                 <span className="mr-3">💬</span>
                 Messages
               </Link>
             </li>
             <li>
-              <Link to="/admin/settings" className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded">
+              <Link
+                to="/admin/settings"
+                className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded"
+              >
                 <span className="mr-3">⚙️</span>
                 Settings
               </Link>
@@ -78,6 +102,7 @@ function AdminLayout() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/reservations" element={<Reservations />} />
+          <Route path="/guests" element={<CustomerList />} />
           <Route path="/rooms" element={<Rooms />} />
           <Route path="/restaurant" element={<Restaurant />} />
           <Route path="/messages" element={<Message />} />
