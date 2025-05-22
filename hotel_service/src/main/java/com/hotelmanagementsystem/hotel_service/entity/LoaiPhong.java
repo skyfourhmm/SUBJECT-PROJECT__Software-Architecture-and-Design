@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,7 +29,7 @@ public class LoaiPhong {
 
     @Id
     @Column(name = "ma_loai_phong", updatable = false, nullable = false)
-    private String maLoaiPhong = UUID.randomUUID().toString();;
+    private String maLoaiPhong = UUID.randomUUID().toString();
 
     @Column(name = "ten_loai_phong")
     private String tenLoaiPhong;
@@ -51,6 +53,7 @@ public class LoaiPhong {
     private double giaPhongTheoGio;
 
     @OneToMany(mappedBy = "loaiPhong", cascade = CascadeType.ALL)
+    @JsonIgnore // Thêm dòng này
     private List<Phong> danhSachPhong;
 
     // constructor, getter, setter

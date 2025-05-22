@@ -3,6 +3,8 @@ package com.hotelmanagementsystem.hotel_service.entity;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,7 +32,9 @@ public class TrangThaiPhong {
     private String tenTrangThai;
 
     @OneToMany(mappedBy = "trangThaiPhong", cascade = CascadeType.ALL)
+    @JsonIgnore // Thêm dòng này
     private List<Phong> danhSachPhong;
+
 
     // constructor, getter, setter
 }

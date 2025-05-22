@@ -27,6 +27,10 @@ public class KhachHangService {
     }
 
 
+    public Optional<KhachHang> getById(String id) {
+        return khachHangRepository.findById(id);
+    }
+
 //    public KhachHang updateByUsername(String tenDangNhap, KhachHangUpdateDTO dto) {
 //        TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhap(tenDangNhap)
 //                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản"));

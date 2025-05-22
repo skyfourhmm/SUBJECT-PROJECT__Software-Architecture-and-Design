@@ -10,4 +10,8 @@ import com.hotelmanagementsystem.hotel_service.entity.Phong;
 public interface PhongRepository extends JpaRepository<Phong, UUID> {
     // không cần thêm method nào, JpaRepository đã hỗ trợ findAll()
     List<Phong> findByTrangThaiPhong_TenTrangThai(String tinhTrangPhong);
+
+    List<Phong> findByLoaiPhong_MaLoaiPhong(String maLoaiPhong);
+
+    
 }

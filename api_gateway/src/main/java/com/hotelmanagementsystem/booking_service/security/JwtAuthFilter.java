@@ -19,9 +19,21 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         String path = exchange.getRequest().getURI().getPath();
 
         // Bỏ qua các đường dẫn public (không cần token)
-        if (path.startsWith("/identity/api/auth/login") || path.startsWith("/public-api")) {
+        if (
+        path.startsWith("/identity/api/auth/login") ||
+        path.startsWith("/public-api") ||
+        path.startsWith("/identity/api/auth/register") ||
+        path.startsWith("/identity/api/customer/list") ||
+        path.startsWith("/hotel/api/loai-phong/tat-ca") ||
+        path.startsWith("/hotel/api/phong/loai/") ||
+        path.startsWith("/identity/api/customer/by-sdt") ||
+        path.startsWith("/booking/api/phieu-dat-phong") ||
+        path.startsWith("/identity/api/customer/by-id") ||
+        path.startsWith("/hotel/api/phong/by-id") 
+        ) {
             return chain.filter(exchange);
         }
+
 
         String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
 

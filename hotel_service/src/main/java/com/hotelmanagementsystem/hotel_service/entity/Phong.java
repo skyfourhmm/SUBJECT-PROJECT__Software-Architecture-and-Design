@@ -2,6 +2,8 @@ package com.hotelmanagementsystem.hotel_service.entity;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -27,11 +29,14 @@ public class Phong {
 
     @ManyToOne
     @JoinColumn(name = "ma_loai_phong", referencedColumnName = "ma_loai_phong")
+    @JsonIgnore // (nếu bạn không cần trả loại phòng kèm theo phòng)
     private LoaiPhong loaiPhong;
 
     @ManyToOne
     @JoinColumn(name = "ma_trang_thai", referencedColumnName = "ma_trang_thai")
+    // ĐỂ LẠI nếu bạn muốn trả trạng thái kèm phòng (VD: "Trống", "Đã đặt")
     private TrangThaiPhong trangThaiPhong;
+
 
     @Column(name = "ten_phong")
     private String tenPhong;

@@ -30,6 +30,14 @@ public class KhachHangController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+    
+
+    @GetMapping("/by-id")
+    public ResponseEntity<KhachHang> getById(@RequestParam String id) {
+        return khachHangService.getById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 
 //    @PutMapping("/me")
 //    public ResponseEntity<?> updateOwnInfo(@RequestBody KhachHangUpdateDTO dto,
