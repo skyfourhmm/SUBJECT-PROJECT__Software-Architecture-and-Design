@@ -9,5 +9,15 @@ import java.util.Optional;
 
 @Repository
 public interface KhachHangRepository extends JpaRepository<KhachHang, String> {
+    Optional<KhachHang> findByTaiKhoan_TenDangNhap(String tenDangNhap); // Nếu cần tìm theo tài khoản
+
     Optional<KhachHang> findByTaiKhoan(TaiKhoan taiKhoan);
+
+    // Optional: nếu cần tìm thêm
+    Optional<KhachHang> findBySoDienThoai(String soDienThoai);
+
+    // KhachHangRepository.java
+    boolean existsBySoDienThoai(String soDienThoai);
+    boolean existsByCCCD(String CCCD);
+
 }

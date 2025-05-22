@@ -1,13 +1,13 @@
 package com.hotelmanagementsystem.indentity_service.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Entity
 @Data
@@ -15,23 +15,28 @@ import java.util.concurrent.ThreadLocalRandom;
 @AllArgsConstructor
 @Table(name = "KhachHang")
 public class KhachHang {
+
     @Id
     @Column(name = "maKhachHang", updatable = false, nullable = false)
     private String maKhachHang = UUID.randomUUID().toString();
 
     private String hoTen;
     private String gioiTinh;
-    private Date ngaySinh;
+    private LocalDate ngaySinh;
     private String diaChi;
+    @Column(unique = true)
     private String soDienThoai;
     private int diemThuong;
     private String ghiChu;
+    @Column(unique = true)
+    private String CCCD;
 
+    // Quan hệ 1-1 với TaiKhoan (KhachHang là chủ sở hữu)
     @OneToOne
-    @JoinColumn(name = "taiKhoan_id", referencedColumnName = "id")
+    @JoinColumn(name = "maTaiKhoan")
+    @JsonBackReference
     private TaiKhoan taiKhoan;
 
-
-    // Getters & Setters
 }
+
 

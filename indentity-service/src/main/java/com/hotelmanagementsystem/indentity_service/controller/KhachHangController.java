@@ -15,19 +15,34 @@ import java.util.List;
 @RequestMapping("api/customer")
 public class KhachHangController {
 
-    @Autowired
-    private KhachHangService khachHangService;
+   @Autowired
+   private KhachHangService khachHangService;
 
-    @GetMapping("/list")
-    public ResponseEntity<List<KhachHang>> getAllKhachHang() {
-        List<KhachHang> danhSachKhachHang = khachHangService.getAllKhachHang();
-        return ResponseEntity.ok(danhSachKhachHang);
+   @GetMapping("/list")
+   public ResponseEntity<List<KhachHang>> getAllKhachHang() {
+       List<KhachHang> danhSachKhachHang = khachHangService.getAllKhachHang();
+       return ResponseEntity.ok(danhSachKhachHang);
+   }
+
+   @GetMapping("/by-sdt")
+    public ResponseEntity<KhachHang> getBySoDienThoai(@RequestParam String soDienThoai) {
+        return khachHangService.getBySoDienThoai(soDienThoai)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+    
+
+    @GetMapping("/by-id")
+    public ResponseEntity<KhachHang> getById(@RequestParam String id) {
+        return khachHangService.getById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/me")
-    public ResponseEntity<?> updateOwnInfo(@RequestBody KhachHangUpdateDTO dto,
-                                           @AuthenticationPrincipal UserDetails userDetails) {
-        KhachHang updated = khachHangService.updateByUsername(userDetails.getUsername(), dto);
-        return ResponseEntity.ok(updated);
-    }
+//    @PutMapping("/me")
+//    public ResponseEntity<?> updateOwnInfo(@RequestBody KhachHangUpdateDTO dto,
+//                                           @AuthenticationPrincipal UserDetails userDetails) {
+//        KhachHang updated = khachHangService.updateByUsername(userDetails.getUsername(), dto);
+//        return ResponseEntity.ok(updated);
+//    }
 }

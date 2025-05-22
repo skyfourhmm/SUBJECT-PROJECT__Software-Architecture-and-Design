@@ -6,13 +6,16 @@ import lombok.Data;
 public class LoginResponse {
     private String token;
     private String tenDangNhap;
-    private String role;
+    private String vaiTro; // "KHACH_HANG" hoặc "NHAN_VIEN"
+    private Object thongTinNguoiDung;
 
-    public LoginResponse(String token, String tenDangNhap, String role) {
+    public LoginResponse(String token, String tenDangNhap, String vaiTro, Object thongTinNguoiDung) {
         this.token = token;
         this.tenDangNhap = tenDangNhap;
-        this.role = role;
+        this.vaiTro = vaiTro;
+        this.thongTinNguoiDung = thongTinNguoiDung;
     }
 
-    // Getters & Setters
+    // Getters & Setters nếu không dùng Lombok
 }
+

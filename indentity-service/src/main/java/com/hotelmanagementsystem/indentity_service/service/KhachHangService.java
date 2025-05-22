@@ -9,34 +9,44 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class KhachHangService {
-    @Autowired
-    private KhachHangRepository khachHangRepository;
-    @Autowired
-    private TaiKhoanRepository taiKhoanRepository;
+   @Autowired
+   private KhachHangRepository khachHangRepository;
+   @Autowired
+   private TaiKhoanRepository taiKhoanRepository;
 
-    public List<KhachHang> getAllKhachHang() {
-        return khachHangRepository.findAll();
+   public List<KhachHang> getAllKhachHang() {
+       return khachHangRepository.findAll();
+   }
+
+    public Optional<KhachHang> getBySoDienThoai(String soDienThoai) {
+        return khachHangRepository.findBySoDienThoai(soDienThoai);
     }
 
-    public KhachHang updateByUsername(String tenDangNhap, KhachHangUpdateDTO dto) {
-        TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhap(tenDangNhap)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản"));
 
-        KhachHang khachHang = khachHangRepository.findByTaiKhoan(taiKhoan)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
-
-        khachHang.setHoTen(dto.getHoTen());
-        khachHang.setGioiTinh(dto.getGioiTinh());
-        khachHang.setNgaySinh(dto.getNgaySinh());
-        khachHang.setDiaChi(dto.getDiaChi());
-        khachHang.setSoDienThoai(dto.getSoDienThoai());
-        khachHang.setDiemThuong(dto.getDiemThuong());
-        khachHang.setGhiChu(dto.getGhiChu());
-
-        return khachHangRepository.save(khachHang);
+    public Optional<KhachHang> getById(String id) {
+        return khachHangRepository.findById(id);
     }
+
+//    public KhachHang updateByUsername(String tenDangNhap, KhachHangUpdateDTO dto) {
+//        TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhap(tenDangNhap)
+//                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản"));
+
+//        KhachHang khachHang = khachHangRepository.findByTaiKhoan(taiKhoan)
+//                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
+
+//        khachHang.setHoTen(dto.getHoTen());
+//        khachHang.setGioiTinh(dto.getGioiTinh());
+//        khachHang.setNgaySinh(dto.getNgaySinh());
+//        khachHang.setDiaChi(dto.getDiaChi());
+//        khachHang.setSoDienThoai(dto.getSoDienThoai());
+//        khachHang.setDiemThuong(dto.getDiemThuong());
+//        khachHang.setGhiChu(dto.getGhiChu());
+
+//        return khachHangRepository.save(khachHang);
+//    }
 
 }
