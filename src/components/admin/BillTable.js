@@ -1,19 +1,18 @@
-import React from "react";
-
-function BookingTable({ bookings, onView, onEdit, onConfirmOrCancel }) {
+function BillTable({ listBills, onPrint }) {
+  console.log("List of bills:", listBills);
   return (
     <div className="bg-white rounded-lg shadow">
       <table className="w-full">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-              Guest
+              Ma Hoa Don
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-              Room
+              Gia Phong
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-              Price
+              khach Hang
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
               Check-In/Out
@@ -27,21 +26,19 @@ function BookingTable({ bookings, onView, onEdit, onConfirmOrCancel }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
-          {bookings.map((booking) => (
-            <tr key={booking.maPhieuDat} className="hover:bg-gray-50">
+          {listBills.map((booking) => (
+            <tr key={booking.maHoaDon} className="hover:bg-gray-50">
               <td className="px-6 py-4">
                 <div>
-                  <div className="font-medium">{booking?.khachHang?.hoTen}</div>
+                  {/* <div className="font-medium">{booking?.khachHang?.hoTen}</div> */}
                   <div className="text-sm text-gray-500">
-                    {booking.maKhachHang}
+                    {booking.maHoaDon}
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-4">{booking?.phong?.tenPhong}</td>
-              <td className="px-6 py-4">{booking.request}</td>
-              <td className="px-6 py-4">
-                {booking.checkIn} / {booking.checkOut}
-              </td>
+              <td className="px-6 py-4">{booking?.giaTien}</td>
+              <td className="px-6 py-4">{booking?.khachHang?.hoTen}</td>
+              <td className="px-6 py-4">{booking.thoiGianTao}</td>
               <td className="px-6 py-4">
                 <span
                   className={`px-3 py-1 rounded-full text-sm ${
@@ -57,26 +54,14 @@ function BookingTable({ bookings, onView, onEdit, onConfirmOrCancel }) {
               </td>
               <td className="px-6 py-4">
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => onView(booking)}
-                    className="p-1 hover:bg-gray-100 rounded"
-                  >
-                    👁️
-                  </button>
                   {booking.trangThai !== "Đã đặt" && (
                     <button
-                      onClick={() => onEdit(booking)}
+                      onClick={() => onPrint(booking)}
                       className="p-1 hover:bg-gray-100 rounded"
                     >
                       📝
                     </button>
                   )}
-                  <button
-                    onClick={() => onConfirmOrCancel(booking)}
-                    className="p-1 hover:bg-gray-100 rounded text-red-500"
-                  >
-                    {booking.trangThai === "Đã đặt" && "Thanh Toán"}
-                  </button>
                 </div>
               </td>
             </tr>
@@ -87,4 +72,4 @@ function BookingTable({ bookings, onView, onEdit, onConfirmOrCancel }) {
   );
 }
 
-export default BookingTable;
+export default BillTable;

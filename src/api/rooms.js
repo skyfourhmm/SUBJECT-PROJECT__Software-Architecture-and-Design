@@ -69,3 +69,34 @@ export const getRoomById = async (roomId) => {
     throw error;
   }
 };
+
+export const updateRoom = async (roomId, roomData) => {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    throw new Error("Token không hợp lệ");
+  }
+  try {
+    const response = await fetch(
+      `http://localhost:8080/hotel/api/phong/${roomId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(roomData),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Cập nhật thông tin phòng thất bại");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Lỗi cập nhật thông tin phòng:", error);
+    throw error;
+  }
+};

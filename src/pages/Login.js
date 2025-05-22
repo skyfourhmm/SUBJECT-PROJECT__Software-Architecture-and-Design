@@ -4,8 +4,8 @@ import { login } from "../api/user";
 
 function Login() {
   const navigate = useNavigate();
-  const [userName, setUserName] = useState("nhanvien01");
-  const [password, setPassword] = useState("123456");
+  const [userName, setUserName] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();

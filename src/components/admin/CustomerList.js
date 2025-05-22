@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import ReservationHeader from "../../components/admin/ReservationHeader";
-import BookingTable from "../../components/admin/BookingTable";
 import CustomerTable from "./CustomerTable";
 import { getCustomerByPhone, getListCustomer, register } from "../../api/user";
 import CustomerHeader from "./CustomerHeader";
@@ -84,39 +82,25 @@ function CustomerList() {
       newBooking.soDienThoai
     ) {
       try {
-        console.log("Đăng ký thành công:", newBooking);
-
-        // Gọi API đăng ký, truyền đối tượng newBooking (đã đủ các trường)
-        const response = await register({
-          tenDangNhap: "", // nếu có
-          matKhau: "000000", // nên có mật khẩu mặc định
-          loaiNguoiDung: "khachHang", // hoặc lấy từ form nếu có
-          hoTen: newBooking.hoTen,
-          gioiTinh: newBooking.gioiTinh,
-          ngaySinh: newBooking.ngaySinh,
-          diaChi: newBooking.diaChi || null, // địa chỉ không bắt buộc, gửi null nếu trống
-          soDienThoai: newBooking.soDienThoai,
-          cccd: newBooking.cccd || null,
-        });
-
-        // Nếu API trả về thành công, cập nhật state local
-        const newCustomer = {
-          maKhachHang:
-            response.maKhachHang ||
-            `LG-B${Math.floor(10000 + Math.random() * 90000)}`,
+        // Gọi API đăng ký
+        await register({
+          tenDangNhap: "",
+          matKhau: "000000",
+          loaiNguoiDung: "khachHang",
           hoTen: newBooking.hoTen,
           gioiTinh: newBooking.gioiTinh,
           ngaySinh: newBooking.ngaySinh,
           diaChi: newBooking.diaChi || null,
           soDienThoai: newBooking.soDienThoai,
-          diemThuong: 0,
-          ghiChu: newBooking.ghiChu || null,
           cccd: newBooking.cccd || null,
-        };
+        });
 
-        setBookings([...bookings, newCustomer]);
+        // Gọi lại API danh sách khách hàng để cập nhật bảng
+        const updatedCustomerList = await getListCustomer();
+        setCustomerList(updatedCustomerList);
+
+        // Đóng modal và reset form
         setShowAddModal(false);
-
         setNewBooking({
           tenDangNhap: "",
           matKhau: "",
@@ -130,6 +114,7 @@ function CustomerList() {
         });
       } catch (error) {
         alert("Lỗi khi đăng ký khách hàng: " + error.message);
+        console.error(error);
       }
     } else {
       alert("Vui lòng nhập đầy đủ các trường bắt buộc!");

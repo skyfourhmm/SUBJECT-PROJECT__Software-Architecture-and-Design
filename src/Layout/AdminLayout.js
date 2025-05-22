@@ -6,6 +6,7 @@ import Rooms from "../pages/admin/Rooms";
 import Message from "../pages/admin/Message";
 import Restaurant from "../pages/admin/Restaurant";
 import CustomerList from "../components/admin/CustomerList";
+import Bills from "../pages/admin/Bills";
 
 function AdminLayout() {
   return (
@@ -68,11 +69,11 @@ function AdminLayout() {
             </li>
             <li>
               <Link
-                to="/admin/parking"
+                to="/admin/bills"
                 className="flex items-center p-2 text-gray-600 hover:bg-blue-50 rounded"
               >
                 <span className="mr-3">🅿️</span>
-                Parking
+                Bills
               </Link>
             </li>
             <li>
@@ -105,6 +106,7 @@ function AdminLayout() {
           <Route path="/guests" element={<CustomerList />} />
           <Route path="/rooms" element={<Rooms />} />
           <Route path="/restaurant" element={<Restaurant />} />
+          <Route path="/bills" element={<Bills />} />
           <Route path="/messages" element={<Message />} />
         </Routes>
       </div>

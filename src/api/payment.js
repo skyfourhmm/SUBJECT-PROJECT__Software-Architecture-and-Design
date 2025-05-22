@@ -55,3 +55,24 @@ export const updatePayment = async (paymentId, paymentData) => {
     throw error;
   }
 };
+
+export const getAllPayments = async () => {
+  try {
+    const response = await fetch(`http://localhost:8080/payment/api/hoa-don`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Lấy danh sách hóa đơn thất bại");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Lỗi lấy danh sách hóa đơn:", error);
+    throw error;
+  }
+};

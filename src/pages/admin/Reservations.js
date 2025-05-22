@@ -6,6 +6,7 @@ import {
   getListTypeRoom,
   getRoomById,
   getRoomsByTypeId,
+  updateRoom,
 } from "../../api/rooms";
 import {
   getCustomerById,
@@ -26,51 +27,51 @@ function Reservations() {
   const [paymentInfo, setPaymentInfo] = useState(null);
 
   useEffect(() => {
-    const fetchBookingsWithDetails = async () => {
-      try {
-        const data = await getListBooking();
-
-        const bookingsWithDetails = await Promise.all(
-          data.map(async (booking) => {
-            try {
-              // Lấy thông tin khách hàng
-              const customerInfo = await getCustomerById(booking.maKhachHang);
-
-              // Lấy thông tin phòng
-              const roomInfo = await getRoomById(booking.maPhong);
-
-              // Lấy loại phòng nếu tồn tại trong roomInfo
-              const roomType = roomInfo?.loaiPhong || null;
-
-              return {
-                ...booking,
-                khachHang: customerInfo,
-                phong: roomInfo,
-                loaiPhong: roomType, // Thêm loại phòng
-              };
-            } catch (error) {
-              console.error(
-                `Lỗi lấy thông tin cho booking ${booking.maPhieuDat}`,
-                error
-              );
-              return {
-                ...booking,
-                khachHang: null,
-                phong: null,
-                loaiPhong: null,
-              };
-            }
-          })
-        );
-
-        setBookings(bookingsWithDetails);
-      } catch (error) {
-        console.error("Error fetching bookings:", error);
-      }
-    };
-
     fetchBookingsWithDetails();
   }, []);
+
+  const fetchBookingsWithDetails = async () => {
+    try {
+      const data = await getListBooking();
+
+      const bookingsWithDetails = await Promise.all(
+        data?.map(async (booking) => {
+          try {
+            // Lấy thông tin khách hàng
+            const customerInfo = await getCustomerById(booking?.maKhachHang);
+
+            // Lấy thông tin phòng
+            const roomInfo = await getRoomById(booking?.maPhong);
+
+            // Lấy loại phòng nếu tồn tại trong roomInfo
+            const roomType = roomInfo?.loaiPhong || null;
+
+            return {
+              ...booking,
+              khachHang: customerInfo,
+              phong: roomInfo,
+              loaiPhong: roomType, // Thêm loại phòng
+            };
+          } catch (error) {
+            console.error(
+              `Lỗi lấy thông tin cho booking ${booking.maPhieuDat}`,
+              error
+            );
+            return {
+              ...booking,
+              khachHang: null,
+              phong: null,
+              loaiPhong: null,
+            };
+          }
+        })
+      );
+
+      setBookings(bookingsWithDetails);
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+    }
+  };
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -108,9 +109,10 @@ function Reservations() {
   };
 
   const handleEdit = (booking) => {
-    setSelectedBooking(booking);
-    setNewBooking(booking);
-    setShowEditModal(true);
+    // setSelectedBooking(booking);
+    // setNewBooking(booking);
+    // setShowEditModal(true);
+    console.log("Edit booking:", booking);
   };
 
   const handleSaveEdit = () => {
@@ -153,43 +155,43 @@ function Reservations() {
     };
 
     // cập nhật lại trạng thái đặt phòng
-    const maPhieuDat = {
-      maKhachHang: booking.khachHang.maKhachHang,
-      maPhong: booking.maPhong,
-      maHoaDon: booking.maHoaDon,
-      checkIn: booking.checkIn,
-      checkOut: booking.checkOut,
-      trangThai: "Đã Thanh Toán",
-      moTa: "Yeu cau phong view bien",
-    };
+    // const maPhieuDat = {
+    //   maKhachHang: booking.khachHang.maKhachHang,
+    //   maPhong: booking.maPhong,
+    //   maHoaDon: booking.maHoaDon,
+    //   checkIn: booking.checkIn,
+    //   checkOut: booking.checkOut,
+    //   trangThai: "Đã Thanh Toán",
+    //   moTa: "Yeu cau phong view bien",
+    // };
 
-    try {
-      const data = await updateBooking(booking.maPhieuDat, maPhieuDat);
-
-      console.log("Cập nhật đặt phòng thành công:", data);
-    } catch (error) {
-      console.error("Error confirming or canceling booking:", error);
-    }
+    // try {
+    //   const data = await updateBooking(booking.maPhieuDat, maPhieuDat);
+    // } catch (error) {
+    //   console.error("Error confirming or canceling booking:", error);
+    // }
 
     try {
       const phieuDat = await getBookingById(booking.maPhieuDat);
-      if (!phieuDat) return;
-      const updatedPayment = await updatePayment(
-        phieuDat.maHoaDon,
-        paymentData
-      );
+      const user = JSON.parse(localStorage.getItem("userInfo"));
+      // if (!phieuDat) return;
+      // const updatedPayment = await updatePayment(
+      //   phieuDat.maHoaDon,
+      //   paymentData
+      // );
       try {
         // Lấy thông tin khách hàng và nhân viên từ updatedPayment
         const [customer, staff] = await Promise.all([
-          getCustomerById(updatedPayment.maKhachHang),
-          getStaffById(updatedPayment.maNhanVien),
+          getCustomerById(phieuDat.maKhachHang),
+          getStaffById(user.maNhanVien),
         ]);
         // Gộp tất cả vào 1 object
         const fullPaymentInfo = {
-          ...updatedPayment,
+          ...phieuDat,
           khachHang: customer,
           nhanVien: staff,
           booking: booking,
+          giaTien: tinhtien,
         };
         // ✅ Chỉ set 1 lần, sau khi đã có đủ dữ liệu
         setPaymentInfo(fullPaymentInfo);
@@ -203,6 +205,45 @@ function Reservations() {
     } catch (error) {
       console.error("❌ Lỗi khi xác nhận hoặc hủy đặt phòng:", error);
     }
+  };
+
+  const handleComfirmPayment = async () => {
+    // cập nhật lại trạng thái đặt phòng
+    const maPhieuDat = {
+      maKhachHang: paymentInfo?.maKhachHang,
+      maPhong: paymentInfo?.booking?.maPhong,
+      maHoaDon: paymentInfo?.maHoaDon,
+      checkIn: paymentInfo?.booking.checkIn,
+      checkOut: paymentInfo?.booking.checkOut,
+      trangThai: "Đã Thanh Toán",
+      moTa: "",
+    };
+    // Cập nhật lại phòng
+    await updateRoom(paymentInfo?.booking?.maPhong, {
+      ghiChu: "Cập nhật mới",
+      tinhTrangPhong: "Trống",
+      trangThaiPhong: {
+        maTrangThai: "4b9d217d-cf05-4716-8ca6-eeff8bff2731",
+      },
+    });
+    // Cập nhật lại phiếu đặt phòng
+    await updateBooking(paymentInfo.maPhieuDat, maPhieuDat);
+
+    // Cập nhật lại hóa đơn
+    const now = new Date();
+    const thoiGianThanhToan = now.toISOString().slice(0, 19); // YYYY-MM-DDTHH:MM:SS
+    const paymentData = {
+      trangThai: "Đã Thanh Toán",
+      thoiGianThanhToan: thoiGianThanhToan,
+      giaTien: paymentInfo?.giaTien,
+    };
+
+    await updatePayment(paymentInfo?.maHoaDon, paymentData);
+
+    // Gọi lại API để load lại danh sách
+    await fetchBookingsWithDetails();
+    setPaymentInfo(null);
+    setShowPaymentModal(true);
   };
 
   // model
@@ -298,11 +339,28 @@ function Reservations() {
         }
       }
 
-      // 5. Reset form
+      // 5. Cập nhật trạng thái phòng
+      await updateRoom(data?.maPhong, {
+        ghiChu: "Cập nhật mới",
+        tinhTrangPhong: "Đã đặt",
+        trangThaiPhong: {
+          maTrangThai: "9c4e81bd-5d2b-401b-b6db-aac49e427dc9",
+        },
+      });
+
+      // 6. Lấy lại danh sách phòng mới theo loại phòng hiện tại (để cập nhật rooms state)
+      if (selectedRoomType) {
+        const updatedRooms = await getRoomsByTypeId(selectedRoomType);
+        setRooms(updatedRooms);
+      }
+
+      // 7. Lấy lại danh sách booking để cập nhật giao diện
+      await fetchBookingsWithDetails();
+
+      // 8. Reset form
       setShowAddModal(false);
       setPhone("");
       setSelectedRoomType("");
-      setRooms([]);
       setSelectedRoom("");
       setCheckOut("");
     } catch (error) {
@@ -349,8 +407,6 @@ function Reservations() {
       (b) => b.khachHang?.soDienThoai === searchQuery
     );
     setBookingSearch(foundBooking ? [foundBooking] : []);
-
-    console.log("Found booking:", bookings[0].khachHang?.soDienThoai);
   }, [searchQuery, bookings]);
 
   return (
@@ -390,8 +446,8 @@ function Reservations() {
               {/* Hiển thị tên + CCCD khách khi có */}
               {customerInfo && (
                 <div className="mt-1 text-sm text-gray-700">
-                  <div>Tên: {customerInfo.hoTen}</div>
-                  <div>CCCD: {customerInfo.cccd}</div>
+                  <div>Tên: {customerInfo?.hoTen}</div>
+                  <div>CCCD: {customerInfo?.cccd}</div>
                 </div>
               )}
             </div>
@@ -423,11 +479,13 @@ function Reservations() {
                 disabled={!rooms.length}
               >
                 <option value="">-- Chọn phòng --</option>
-                {rooms.map((room) => (
-                  <option key={room.maPhong} value={room.maPhong}>
-                    {room.tenPhong} ({room.tinhTrangPhong})
-                  </option>
-                ))}
+                {rooms
+                  .filter((room) => room.tinhTrangPhong === "Trống") // lọc chỉ phòng Trống
+                  .map((room) => (
+                    <option key={room.maPhong} value={room.maPhong}>
+                      {room.tenPhong} ({room.tinhTrangPhong})
+                    </option>
+                  ))}
               </select>
             </div>
 
@@ -438,6 +496,7 @@ function Reservations() {
                 type="date"
                 className="w-full p-2 border rounded-md"
                 value={checkOut}
+                min={new Date().toISOString().split("T")[0]} // chỉ cho chọn từ hôm nay trở đi
                 onChange={(e) => setCheckOut(e.target.value)}
               />
             </div>
@@ -614,13 +673,9 @@ function Reservations() {
               </p>
               <p>
                 <span className="font-semibold">Giá tiền:</span>{" "}
-                {paymentInfo.giaTien.toLocaleString()} VND
+                {paymentInfo?.giaTien?.toLocaleString()} VND
               </p>
 
-              <p>
-                <span className="font-semibold">Thời gian thanh toán:</span>{" "}
-                {formatDateTime(paymentInfo.thoiGianThanhToan)}
-              </p>
               <p>
                 <span className="font-semibold">Thời gian tạo phiếu:</span>{" "}
                 {formatDateTime(paymentInfo.thoiGianTao)}
@@ -661,11 +716,12 @@ function Reservations() {
 
             <div className="mt-6 flex justify-end gap-3">
               <button
-                onClick={handlePrint}
+                onClick={handleComfirmPayment}
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
               >
-                In
+                Xác nhận thanh toán
               </button>
+
               <button
                 onClick={() => setShowPaymentModal(false)}
                 className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
