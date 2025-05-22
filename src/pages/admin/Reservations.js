@@ -300,12 +300,12 @@ function Reservations() {
   }, [phone]);
 
   const handleSave = async () => {
-    const today = new Date().toISOString().slice(0, 10);
+    const todayLocal = new Date().toLocaleDateString("sv-SE");
     const booking = {
       maKhachHang: customerInfo?.maKhachHang,
       maPhong: selectedRoom,
       maHoaDon: null, // ban đầu chưa có hóa đơn
-      checkIn: today,
+      checkIn: todayLocal,
       checkOut: checkOut,
       tienCoc: null,
       trangThai: "Đã đặt",
