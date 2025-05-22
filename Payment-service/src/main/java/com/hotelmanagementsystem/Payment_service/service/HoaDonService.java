@@ -1,6 +1,7 @@
 package com.hotelmanagementsystem.Payment_service.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,5 +37,9 @@ public class HoaDonService {
         } else {
             throw new RuntimeException("Không tìm thấy hóa đơn với mã: " + maHoaDon);
         }
+    }
+
+     public List<HoaDon> getAllHoaDons() {
+        return hoaDonRepository.findAll();
     }
 }

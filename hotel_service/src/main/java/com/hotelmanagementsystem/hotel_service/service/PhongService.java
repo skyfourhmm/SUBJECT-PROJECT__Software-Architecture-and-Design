@@ -14,6 +14,8 @@ import com.hotelmanagementsystem.hotel_service.repository.LoaiPhongRepository;
 import com.hotelmanagementsystem.hotel_service.repository.PhongRepository;
 import com.hotelmanagementsystem.hotel_service.repository.TrangThaiPhongRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class PhongService {
 
@@ -51,5 +53,33 @@ public class PhongService {
     public Phong layPhongTheoMaPhong(String maPhong) {
         return phongRepository.findById(maPhong).orElse(null);
     }
+
+    @Transactional
+public Phong updatePhong(String maPhong, Phong phongDetails) {
+    // Tìm phòng theo id
+    Phong phong = phongRepository.findById(maPhong)
+            .orElseThrow(() -> new RuntimeException("Phòng không tồn tại với mã: " + maPhong));
+
+    // Cập nhật các trường nếu khác null (giữ nguyên nếu null)
+    if (phongDetails.getTenPhong() != null) {
+        phong.setTenPhong(phongDetails.getTenPhong());
+    }
+    if (phongDetails.getGhiChu() != null) {
+        phong.setGhiChu(phongDetails.getGhiChu());
+    }
+    if (phongDetails.getTinhTrangPhong() != null) {
+        phong.setTinhTrangPhong(phongDetails.getTinhTrangPhong());
+    }
+    if (phongDetails.getLoaiPhong() != null) {
+        phong.setLoaiPhong(phongDetails.getLoaiPhong());
+    }
+    if (phongDetails.getTrangThaiPhong() != null) {
+        phong.setTrangThaiPhong(phongDetails.getTrangThaiPhong());
+    }
+
+    // Lưu lại
+    return phongRepository.save(phong);
+}
+
 
 }

@@ -9,12 +9,17 @@ import com.hotelmanagementsystem.indentity_service.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import java.text.Normalizer;
 import java.util.Optional;
@@ -41,6 +46,7 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    
     public LoginResponse login(LoginRequest request) {
         // 1. Tìm tài khoản theo tenDangNhap
         TaiKhoan taiKhoan = taiKhoanRepository.findByTenDangNhap(request.getUsername())
@@ -73,23 +79,27 @@ public class AuthService {
         return new LoginResponse(token, taiKhoan.getTenDangNhap(), role, userInfo);
     }
 
+    
+
 
     public ApiResponse  register(RegisterRequest request) {
     // 1. Tạo tên đăng nhập nếu chưa nhập
+    
     String tenDangNhap = request.getTenDangNhap();
     if (tenDangNhap == null || tenDangNhap.trim().isEmpty()) {
         tenDangNhap = generateUsernameFromName(request.getHoTen());
-    }
-
-    String cccd = request.getCccd();
-    if (cccd != null && cccd.length() >= 6) {
+        String cccd = request.getCccd();
+        if (cccd != null && cccd.length() >= 6) {
         String dau3 = cccd.substring(0, 3);
         String cuoi3 = cccd.substring(cccd.length() - 3);
         String sixDigits = dau3 + cuoi3;
         tenDangNhap = tenDangNhap + sixDigits;  // Nối 6 ký tự vào cuối tên đăng nhập
-    } else {
+        } else {
         // Xử lý nếu CCCD không đủ dài (tuỳ bạn)
+        }
     }
+
+    
 
     // Kiểm tra mật khẩu phải >= 6 ký tự
     String matKhau = request.getMatKhau();
@@ -116,7 +126,21 @@ public class AuthService {
         if (khachHangRepository.existsByCCCD(request.getCccd())) {
             throw new RuntimeException("Số CCCD đã được sử dụng!");
         }
+    } else if ("nhanVien".equalsIgnoreCase(request.getLoaiNguoiDung())) {
+    if (!isValidCCCD(request.getCccd())) {
+        throw new RuntimeException("Số CCCD không hợp lệ!");
     }
+    if (!request.getSoDienThoai().matches("^0[1-9]\\d{8}$")) {
+        throw new RuntimeException("Số điện thoại không hợp lệ! Vui lòng nhập số bắt đầu từ 01 đến 09 và đủ 10 chữ số.");
+        }
+    if (nhanVienRepository.existsBySoDienThoai(request.getSoDienThoai())) {
+        throw new RuntimeException("Số điện thoại đã được sử dụng!");
+        }
+    if (nhanVienRepository.existsByCccd(request.getCccd())) {
+        throw new RuntimeException("Số CCCD đã được sử dụng!");
+        }
+    }
+
 
     // 4. Tạo tài khoản
     TaiKhoan tk = new TaiKhoan();

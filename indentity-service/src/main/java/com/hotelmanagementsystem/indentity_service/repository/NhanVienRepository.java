@@ -10,4 +10,9 @@ import java.util.Optional;
 @Repository
 public interface NhanVienRepository extends JpaRepository<NhanVien, String> {
     Optional<NhanVien> findByTaiKhoan(TaiKhoan taiKhoan);
+     // ✅ Kiểm tra trùng số điện thoại
+    boolean existsBySoDienThoai(String soDienThoai);
+
+    // ✅ Kiểm tra trùng CCCD
+    boolean existsByCccd(String cccd);
 }
