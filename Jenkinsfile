@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     environment {
-        DOCKER_REGISTRY = 'your-registry'
+        DOCKER_REGISTRY = 'https://hub.docker.com/repositories/rinrin953'
     }
     
     stages {
