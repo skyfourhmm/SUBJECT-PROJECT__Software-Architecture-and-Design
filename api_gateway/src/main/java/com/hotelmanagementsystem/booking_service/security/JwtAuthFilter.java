@@ -5,6 +5,7 @@ import io.jsonwebtoken.JwtException;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,12 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class JwtAuthFilter implements GlobalFilter, Ordered {
+
+    private final RedisTemplate<String, String> redisTemplate;
+
+    public JwtAuthFilter(RedisTemplate<String, String> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -30,7 +37,8 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         path.startsWith("/booking/api/phieu-dat-phong") ||
         path.startsWith("/identity/api/customer/by-id") ||
         path.startsWith("/hotel/api/phong/by-id") ||
-        path.startsWith("/identity/api/nhanvien") 
+        path.startsWith("/identity/api/nhanvien") || 
+        path.startsWith("/payment/api/hoa-don") 
         ) {
             return chain.filter(exchange);
         }
@@ -44,6 +52,13 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         }
 
         String token = authHeader.substring(7);
+
+        // Check token in blacklist (Redis)
+        Boolean isBlacklisted = redisTemplate.hasKey(token);
+            if (Boolean.TRUE.equals(isBlacklisted)) {
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            return exchange.getResponse().setComplete();
+        }
 
         try {
             Claims claims = JwtUtil.validateToken(token);

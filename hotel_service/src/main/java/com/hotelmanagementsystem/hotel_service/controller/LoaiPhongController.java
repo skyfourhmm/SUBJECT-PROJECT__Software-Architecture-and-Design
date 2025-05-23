@@ -31,8 +31,8 @@ public class LoaiPhongController {
     @PostMapping("/them")
     public ResponseEntity<LoaiPhong> themLoaiPhong(@RequestBody LoaiPhongRequest request, HttpServletRequest httpRequest) {
         
-        // String userName = httpRequest.getHeader("X-User-Id");
-        // System.out.println("User ID: " + userName);
+        String userName = httpRequest.getHeader("X-User-Id");
+        System.out.println("User ID: " + userName);
         
         LoaiPhong loaiPhongMoi = loaiPhongService.themLoaiPhong(request);
         System.out.println("Loai phong moi: " + loaiPhongMoi);

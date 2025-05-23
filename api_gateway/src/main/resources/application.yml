@@ -22,5 +22,8 @@ spring:
           uri: http://localhost:8084
           predicates:
             - Path=/payment/**
+  redis:
+    host: localhost
+    port: 6379
 jwt:
   secret: cXWgolhZuRwCyI0mQGb1UtrtIrMLbpfL7TxvjghQnPi9M7NFU6o8Mp0Vk4s67s4T12wbuO84LbEsfuymJyzMeArr
